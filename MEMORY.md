@@ -118,7 +118,8 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
 - [X] **Enterprise refactor**: `src/` layout, type hints, logging, tests scaffold, Docker, README
 - [ ] **Polish**: `st.toast` notifications, responsive layout tweaks
 - [ ] **Multiple events**: Save/load named event presets (local JSON or `st.session_state` export)
-- [ ] **Unit test coverage**: Expand `tests/` beyond smoke — parametrised physics edge cases, and importantly results of all pure calculation methods (like get_CME_mass_pluta, get_CME_cross_section_pluta, etc.) for some example values in observations, geometry, velocity, propagation parameters, etc., so future changes don't introduce unexpected inaccuracies that are hard to trace (use margins since exact valuse might not work).
+- [ ] **Unit test coverage**: Expand `tests/` beyond smoke — parametrised physics edge cases, and importantly results of calculation methods so future changes don't introduce unexpected inaccuracies that are hard to trace, at least for (but not limited to) the following:
+  - [ ] on a mini
 - [ ] **CI**: GitHub Actions workflow (lint + pytest on push)
 
 ---
