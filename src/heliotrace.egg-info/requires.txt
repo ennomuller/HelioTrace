@@ -1,0 +1,14 @@
+streamlit~=1.41
+astropy~=7.0
+plotly~=5.24
+numpy~=2.1.3
+pandas~=2.2.3
+scipy~=1.15
+
+[dev]
+pytest>=8.0
+pytest-cov
+
+[notebooks]
+sunpy~=5.1
+matplotlib~=3.10

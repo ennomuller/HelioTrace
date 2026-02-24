@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - ENV=production
+    # No volume mounts in the default (production) profile →
+    # the image runs exactly what was baked in during `docker build`.
+
+  # --------------------------------------------------------------------------
+  # Development override — adds live-reload mounts.
+  # Usage: docker-compose --profile dev up
+  # --------------------------------------------------------------------------
+  app-dev:
+    build: .
+    profiles: ["dev"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./src/heliotrace:/app/src/heliotrace  # live-reload library code
+      - ./pages:/app/pages                    # live-reload pages
+      - ./app.py:/app/app.py                  # live-reload entry point
+    environment:
+      - ENV=development

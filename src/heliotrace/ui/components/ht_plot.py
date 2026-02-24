@@ -1,0 +1,90 @@
+"""
+Plotly Height-Time diagram with linear fit and velocity annotation.
+"""
+from __future__ import annotations
+
+from datetime import timedelta
+from typing import Any
+
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+
+
+def build_ht_figure(
+    df: pd.DataFrame,
+    height_error: float,
+    slope: float,
+    intercept: float,
+    chi_squared: float,
+    v_apex_kms: float,
+    v_apex_error_kms: float,
+) -> go.Figure:
+    """
+    Build a Plotly Height-Time figure with error bars and a linear fit line.
+
+    :param df:               Sorted GCS DataFrame with ``datetime`` and ``height`` columns.
+    :param height_error:     ± measurement uncertainty [R_sun] (constant for all points).
+    :param slope:            Fit slope [R_sun / s].
+    :param intercept:        Fit intercept [R_sun].
+    :param chi_squared:      Reduced χ² of the fit.
+    :param v_apex_kms:       Derived apex velocity [km / s].
+    :param v_apex_error_kms: 1σ uncertainty on ``v_apex_kms`` [km / s].
+    :return: Plotly :class:`~plotly.graph_objects.Figure`.
+    """
+    df = df.sort_values("datetime").reset_index(drop=True)
+    t_ref = df["datetime"].iloc[0]
+
+    t_min   = df["datetime"].min() - timedelta(minutes=20)
+    t_max   = df["datetime"].max() + timedelta(minutes=20)
+    t_range = pd.date_range(t_min, t_max, periods=200)
+    t_sec   = (t_range - t_ref).total_seconds().to_numpy()
+    fit_heights = slope * t_sec + intercept
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=df["datetime"],
+            y=df["height"],
+            mode="markers",
+            name="GCS heights",
+            error_y=dict(type="constant", value=height_error, visible=True, thickness=1.5, width=5),
+            marker=dict(color="#E63946", size=9, symbol="circle"),
+            hovertemplate="<b>%{x|%Y-%m-%d %H:%M}</b><br>Height: %{y:.2f} R☉<extra></extra>",
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=t_range,
+            y=fit_heights,
+            mode="lines",
+            name=f"Linear fit (χ² = {chi_squared:.2f})",
+            line=dict(color="#1D3557", width=2),
+            hovertemplate="Fit: %{y:.2f} R☉<extra></extra>",
+        )
+    )
+
+    fig.add_annotation(
+        text=f"<b>v = ({v_apex_kms:.0f} ± {v_apex_error_kms:.0f}) km/s</b>",
+        xref="paper", yref="paper",
+        x=0.98, y=0.06,
+        showarrow=False, align="right",
+        bgcolor="white", bordercolor="#888", borderwidth=1,
+        font=dict(size=13, color="#1D3557"),
+    )
+
+    fig.update_layout(
+        xaxis_title="Date & Time [UT]",
+        yaxis_title="CME Front Height [R☉]",
+        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)", bordercolor="#ccc", borderwidth=1),
+        hovermode="x unified",
+        margin=dict(t=30, b=60, l=60, r=20),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+    )
+    fig.update_xaxes(showgrid=True, gridcolor="#eee", tickformat="%d-%m\n%H:%M")
+    fig.update_yaxes(showgrid=True, gridcolor="#eee")
+
+    return fig
