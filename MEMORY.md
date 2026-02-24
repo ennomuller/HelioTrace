@@ -9,10 +9,9 @@
 
 ## 📍 Current State (2026-02-24)
 
-**Enterprise refactor complete.** The project was migrated from an ad-hoc `app/` layout
-to a proper `src/heliotrace/` installable package. All 9 smoke tests pass; the old source
-tree (`app/`, `gcs/`, `utils/`, `requirements.txt`) has been deleted. Entry point is now
-`streamlit run app.py`.
+**Presentation & documentation polish complete.** Enterprise refactor was completed
+previously (all 9 smoke tests pass). This pass added a proper landing page, MIT license,
+attribution, and citation guidance. Entry point is `streamlit run app.py`.
 
 ### Repository layout (post-refactor)
 
@@ -48,7 +47,8 @@ Dockerfile                ← single-stage python:3.11-slim, pip install .
 docker-compose.yml        ← default (prod) + dev profile (targeted volume mounts)
 .streamlit/config.toml    ← headless=true, custom red/dark-blue theme
 .env.example              ← documents all env vars
-README.md                 ← setup + run instructions
+README.md                 ← setup + run instructions (models, citations, license, thesis link)
+LICENSE                   ← MIT License (copyright 2026 Enno Müller)
 ```
 
 ### Validation (2026-02-24)
@@ -116,6 +116,7 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
 - [X] **H-T Plot**: Plotly scatter + linear fit + velocity annotation
 - [X] **KPI cards**: Transit time, impact speed, arrival time, ΔToA vs expected
 - [X] **Enterprise refactor**: `src/` layout, type hints, logging, tests scaffold, Docker, README
+- [X] **Meta / Presentation polish**: landing page redesign (`app.py`), MIT LICENSE, gcs_python attribution, citation placeholder, README expansion (tagline, DOIs, thesis link, Citing section)
 - [ ] **Polish**: `st.toast` notifications, responsive layout tweaks
 - [ ] **Multiple events**: Save/load named event presets (local JSON or `st.session_state` export)
 - [ ] **Unit test coverage**: Expand `tests/` beyond smoke — parametrised physics edge cases, and importantly results of calculation methods so future changes don't introduce unexpected inaccuracies that are hard to trace, at least for (but not limited to) the following:
