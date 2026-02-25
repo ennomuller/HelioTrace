@@ -1,9 +1,25 @@
 """
 GCS (Graduated Cylindrical Shell) mesh geometry.
 
-Ported from the IDL reference implementations:
-  - shellskeleton.pro  (skeleton axis)
-  - cmecloud.pro       (full point cloud)
+.. rubric:: Third-party attribution
+
+A substantial portion of this module — specifically :func:`skeleton` and
+:func:`gcs_mesh`, as well as the rotation helpers derived from them — is
+adapted from the **gcs_python** library by **Johan von Forstner**:
+
+    https://github.com/johan12345/gcs_python
+
+gcs_python is itself a Python port of the original IDL reference implementations
+by Andreas Thernisien:
+
+- ``shellskeleton.pro``  — axis/skeleton of the GCS shell
+- ``cmecloud.pro``       — full point cloud (mesh surface)
+
+If you use this code in academic work, please cite the original GCS model paper:
+
+    Thernisien, A. F. R., Howard, R. A., & Vourlidas, A. (2006).
+    *Modeling of Flux Rope Coronal Mass Ejections.*
+    ApJ, 652, 763. https://doi.org/10.1086/508254
 
 All public functions use plain NumPy arrays.  ``gcs_mesh_sunpy`` is a
 notebook-only convenience wrapper and requires the optional ``sunpy`` package.
@@ -33,6 +49,12 @@ def skeleton(
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Compute the parametric axis (skeleton) of the GCS CME model.
+
+    .. note::
+        **Adapted from gcs_python** (Johan von Forstner, MIT License):
+        https://github.com/johan12345/gcs_python
+        Which is a Python port of the IDL routine ``shellskeleton.pro``
+        (Andreas Thernisien).
 
     Based on the IDL reference: ``shellskeleton.pro``.
 
@@ -89,6 +111,12 @@ def gcs_mesh(
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Build the full GCS point cloud from the skeleton.
+
+    .. note::
+        **Adapted from gcs_python** (Johan von Forstner, MIT License):
+        https://github.com/johan12345/gcs_python
+        Which is a Python port of the IDL routine ``cmecloud.pro``
+        (Andreas Thernisien).
 
     Based on the IDL reference: ``cmecloud.pro``.
 

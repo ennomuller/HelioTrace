@@ -3,11 +3,31 @@
 ## 🎯 Context
 
 **Goal**: Create an interactive Space Weather portfolio app using Python & Streamlit.
-**Source Material**: Jupyter notebooks in `notebooks/` contain the raw science logic.
 
 ---
 
-## 📍 Current State (2026-02-24)
+## 📍 Current State (2026-02-25)
+
+**UI overhaul & attribution pass complete.**
+
+- Project renamed from **CME Explorer → HelioTrace** across all UI, titles, and page configs.
+- `pages/01_CME_Propagation.py` **split** into two dedicated pages:
+  - `pages/01_GCS_Observations.py` — GCS data table, H-T fit, 3D geometry, projection ratio
+  - `pages/02_ICME_Propagation.py` — DBM/MODBM simulation, KPI cards, comparison plots
+- `app.py` (**Home**) fully rewritten: tagline, capabilities bullets, science background table,
+  acknowledgments expander, TODO-tagged data source placeholder.
+- `src/heliotrace/config.py` — added `KEY_DERIVED_PARAMS` and `KEY_CLEAN_DF` session-state keys.
+- `src/heliotrace/ui/state.py` — initialises the two new session-state keys.
+- `src/heliotrace/ui/components/sidebar_inputs.py` — `render_sidebar(show_run_button=True)` parameter
+  added so GCS page suppresses the Run button.
+- `src/heliotrace/physics/geometry.py` — full `gcs_python` (Johan von Forstner) attribution added
+  to module docstring and to `skeleton()` / `gcs_mesh()` function docstrings.
+- `THIRD_PARTY_LICENSES.md` — created to document incorporated gcs_python code.
+- `README.md` — full rewrite: Features section, clone-first Quick Start, Science Background table,
+  Related Publication section (placeholder links), Acknowledgments section.
+- `docs/.gitkeep` — placeholder for thesis excerpt PDF.
+
+### Previous state (2026-02-24)
 
 **Enterprise refactor complete.** The project was migrated from an ad-hoc `app/` layout
 to a proper `src/heliotrace/` installable package. All 9 smoke tests pass; the old source
@@ -38,9 +58,10 @@ src/heliotrace/           ← installable package (pip install -e .)
       ht_plot.py          ← Plotly Height-Time diagram
       gcs_plot.py         ← Plotly 3D GCS mesh (scipy.spatial.Delaunay, no matplotlib)
       propagation_plot.py ← two-panel DBM vs MODBM comparison chart
-app.py                    ← clean entry point (no sys.path hacks)
+app.py                    ← Home page (branding, capabilities, acknowledgments, science background)
 pages/
-  01_CME_Propagation.py   ← main simulation page
+  01_GCS_Observations.py  ← Page 1: GCS data table, H-T fit, 3D geometry, projection
+  02_ICME_Propagation.py  ← Page 2: DBM/MODBM simulation, KPI cards, comparison plots
 tests/
   test_smoke.py           ← 9 smoke tests (imports, physics unit, full integration)
 pyproject.toml            ← single source of truth for deps + build
@@ -111,11 +132,14 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
 
 - [X] **Data Pipeline**: GCS data entered via `st.data_editor` table
 - [X] **Simulation Engine**: DBM + MODBM fully ported to `simulation/runner.py`
-- [X] **UI Layer**: Two-tab layout — Tab 1 (geometry, live) / Tab 2 (propagation, button-triggered)
+- [X] **UI Layer**: Page 1 (GCS Observations, live) / Page 2 (ICME Propagation, button-triggered)
 - [X] **GCS 3D Plot**: Plotly Mesh3d with projection point indicator
 - [X] **H-T Plot**: Plotly scatter + linear fit + velocity annotation
 - [X] **KPI cards**: Transit time, impact speed, arrival time, ΔToA vs expected
 - [X] **Enterprise refactor**: `src/` layout, type hints, logging, tests scaffold, Docker, README
+- [X] **Branding**: Renamed CME Explorer → HelioTrace globally; updated README + all page configs
+- [X] **Attribution**: gcs_python (Johan von Forstner) documented in geometry.py, THIRD_PARTY_LICENSES.md, README, and app.py Home page
+- [X] **Page split**: GCS Observations (page 1) + ICME Propagation (page 2); session-state cross-page data flow via KEY_DERIVED_PARAMS / KEY_CLEAN_DF
 - [ ] **Polish**: `st.toast` notifications, responsive layout tweaks
 - [ ] **Multiple events**: Save/load named event presets (local JSON or `st.session_state` export)
 - [ ] **Unit test coverage**: Expand `tests/` beyond smoke — parametrised physics edge cases, and importantly results of calculation methods so future changes don't introduce unexpected inaccuracies that are hard to trace, at least for (but not limited to) the following:

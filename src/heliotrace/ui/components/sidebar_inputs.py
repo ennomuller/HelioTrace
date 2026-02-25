@@ -1,5 +1,5 @@
 """
-Sidebar input panel for CME Explorer.
+Sidebar input panel for HelioTrace.
 
 Renders all user-controllable parameters and returns a ``(SimulationConfig, run_clicked)`` tuple.
 """
@@ -14,14 +14,18 @@ from heliotrace.config import TARGET_PRESETS
 from heliotrace.models.schemas import SimulationConfig, TargetConfig
 
 
-def render_sidebar() -> tuple[SimulationConfig, bool]:
+def render_sidebar(show_run_button: bool = True) -> tuple[SimulationConfig, bool]:
     """
     Render the full sidebar and return ``(config, run_clicked)``.
 
     The returned :class:`~heliotrace.models.schemas.SimulationConfig` holds the
     current value of every widget.  ``run_clicked`` is ``True`` only on the
-    exact frame when the user pressed the Run button.
+    exact frame when the user pressed the Run button (only possible when
+    ``show_run_button=True``).
 
+    :param show_run_button: When ``False`` the **▶ Run Simulation** button is
+        suppressed.  Set to ``False`` on the GCS Observations page so the
+        button only appears on the Propagation page.
     :return: ``(SimulationConfig, bool)``
     """
     with st.sidebar:
@@ -176,13 +180,16 @@ def render_sidebar() -> tuple[SimulationConfig, bool]:
         st.divider()
 
         # ------------------------------------------------------------------ #
-        # 6. Run button
+        # 6. Run button  (propagation page only)
         # ------------------------------------------------------------------ #
-        run_clicked: bool = st.button(
-            "▶ Run Simulation",
-            type="primary",
-            use_container_width=True,
-        )
+        if show_run_button:
+            run_clicked: bool = st.button(
+                "▶ Run Simulation",
+                type="primary",
+                use_container_width=True,
+            )
+        else:
+            run_clicked = False
 
     config = SimulationConfig(
         event_str=event_str,

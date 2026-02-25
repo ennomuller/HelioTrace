@@ -12,6 +12,8 @@ from datetime import datetime
 # ---------------------------------------------------------------------------
 KEY_SIM_RESULTS: str = "simulation_results"
 KEY_SIM_CONFIG: str = "simulation_config"
+KEY_DERIVED_PARAMS: str = "derived_gcs_params"   # DerivedGCSParams — set by Page 1, read by Page 2
+KEY_CLEAN_DF: str = "clean_gcs_df"               # cleaned pd.DataFrame — set by Page 1, read by Page 2
 
 # ---------------------------------------------------------------------------
 # Target presets  (name → {lon_deg, lat_deg, distance_au} | None for Custom)

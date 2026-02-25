@@ -16,11 +16,13 @@ def init_session_state() -> None:
     """
     import streamlit as st  # local import keeps the module importable outside Streamlit
 
-    from heliotrace.config import KEY_SIM_CONFIG, KEY_SIM_RESULTS
+    from heliotrace.config import KEY_SIM_CONFIG, KEY_SIM_RESULTS, KEY_DERIVED_PARAMS, KEY_CLEAN_DF
 
     defaults: dict = {
-        KEY_SIM_RESULTS: None,
-        KEY_SIM_CONFIG:  None,
+        KEY_SIM_RESULTS:    None,
+        KEY_SIM_CONFIG:     None,
+        KEY_DERIVED_PARAMS: None,  # DerivedGCSParams populated by Page 1
+        KEY_CLEAN_DF:       None,  # cleaned pd.DataFrame populated by Page 1
     }
     for key, value in defaults.items():
         if key not in st.session_state:
