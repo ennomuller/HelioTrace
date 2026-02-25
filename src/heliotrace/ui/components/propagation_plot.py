@@ -100,9 +100,9 @@ def build_propagation_comparison_figure(
         line=dict(color=_COLORS["target"], width=1.5, dash="dot"),
         row=1, col=1,
         annotation_text=f"Target ({target_distance_au:.2f} AU)",
-        annotation_position="bottom right",
+        annotation_position="bottom left",
         annotation_font_color=_COLORS["target"],
-        annotation_font_size=10,
+        annotation_font_size=13,
     )
 
     fig.update_xaxes(title_text="Propagation Time [h]", showgrid=True, gridcolor="#eee")

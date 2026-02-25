@@ -151,4 +151,11 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
 ## 🧠 Scratchpad / Notes
 
 *(Dump temporary info here: bug descriptions, ideas for future features, or reminders)*
--------------------------------------------------------------------------------------
+
+### Known Issue: Invalidating Streamlit Cloud's pip cache
+
+Root Cause
+Streamlit Cloud installs your heliotrace package via pip install . once, then caches that environment between deploys. Even though the latest code (including the new keys in config.py) was already on GitHub, the cloud was still importing the old installed package — which didn't have KEY_DERIVED_PARAMS or KEY_CLEAN_DF.
+
+The Fix
+Changing pyproject.toml (the version from 0.1.0 → 0.1.1) invalidates Streamlit Cloud's pip cache because it detects the dependency file changed. On the next deploy it will run a fresh pip install ., picking up all the new code correctly.
