@@ -16,10 +16,10 @@ from heliotrace.models.schemas import PropagationSeries, SimulationResults
 _AU_IN_RSUN: float = float((1 * u.AU).to(u.R_sun).value)
 
 _COLORS: dict[str, str] = {
-    "DBM":    "#E07B39",   # warm orange
-    "MODBM":  "#457B9D",   # cool blue
-    "target": "#2A9D8F",   # teal reference line
-    "arrival": "#9B59B6",  # purple — arrival marker (distinct from both models)
+    "DBM":    "#1f77b4",   # tab10 blue
+    "MODBM":  "#ff7f0e",   # tab10 orange
+    "target": "#2ca02c",   # tab10 green — reference line
+    "arrival": "#d62728",  # tab10 red — arrival marker
 }
 
 # Public alias so the page module can import colours for per-model figures
@@ -32,7 +32,7 @@ def build_single_model_figure(
     target_distance_au: float,
     label: str,
     color: str,
-    height_px: int = 320,
+    height_px: int = 420,
 ) -> go.Figure:
     """
     Build a compact dual-y-axis figure for one model.
@@ -115,15 +115,15 @@ def build_single_model_figure(
         showlegend=True,
         legend=dict(
             orientation="h",
-            x=0.5, y=-0.18,
-            xanchor="center", yanchor="top",
+            x=0.5, y=1.02,
+            xanchor="center", yanchor="bottom",
             bgcolor="rgba(255,255,255,0.85)",
             bordercolor="#ccc", borderwidth=1,
             font=dict(size=11),
         ),
         plot_bgcolor="white",
         paper_bgcolor="white",
-        margin=dict(t=20, b=60, l=60, r=60),
+        margin=dict(t=50, b=30, l=60, r=60),
         height=height_px,
     )
     return fig
@@ -248,15 +248,15 @@ def build_propagation_comparison_figure(
         hovermode="x unified",
         legend=dict(
             orientation="h",
-            x=0.5, y=-0.15,
-            xanchor="center", yanchor="top",
+            x=0.5, y=1.05,
+            xanchor="center", yanchor="bottom",
             bgcolor="rgba(255,255,255,0.85)",
             bordercolor="#ccc", borderwidth=1,
             font=dict(size=13),
         ),
         plot_bgcolor="white",
         paper_bgcolor="white",
-        margin=dict(t=50, b=90, l=60, r=20),
+        margin=dict(t=70, b=50, l=60, r=20),
     )
 
     return fig

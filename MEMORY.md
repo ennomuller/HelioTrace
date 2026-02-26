@@ -9,7 +9,11 @@
 
 ## 📍 Current State (2026-02-26)
 
-**UI/UX refinements sprint complete.** Plotting, sidebar, and page-structure polish
+**Plotting Polish Sprint complete.** Tab10 colour palette, legends repositioned above
+axes, responsive figure sizing, and comparison-plot legend centering fixes applied.
+All 9 smoke tests still pass.
+
+**Previous: UI/UX refinements sprint complete.** Plotting, sidebar, and page-structure polish
 pass applied on top of the previous UI/UX polish sprint.  All 9 smoke tests still pass.
 
 **Previous: UI/UX polish sprint complete.** Major improvements to sidebar compactness, results
@@ -185,6 +189,10 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
   - **Comparison plot** (`build_propagation_comparison_figure`):
     - Arrival vlines extracted from `_add_model` inner function; added separately after both models so earlier-arriving model gets `"top left"` annotation, later-arriving gets `"top right"` (no overlap); vlines now appear in **both** panels (col 1 unannotated, col 2 annotated).
     - Target hline annotation replaced with a separate `fig.add_annotation(xref="paper", x=0.225)` centred over col 1 (left subplot).
+- [X] **Plotting Polish Sprint (2026-02-26)**:
+  - **Tab10 colour palette** — `_COLORS` in `propagation_plot.py` and hardcoded hex values in `ht_plot.py` replaced with standard `tab10` values (`DBM=#1f77b4`, `MODBM=#ff7f0e`, `target=#2ca02c`, `arrival=#d62728`; HT fit line `#1f77b4`, scatter points `#d62728`).
+  - **Legends above axes** — `build_single_model_figure` legend moved to `y=1.02, yanchor="bottom"` with `margin t=50, b=30`; `build_propagation_comparison_figure` legend moved to `y=1.05, yanchor="bottom"` with `margin t=70, b=50`; eliminates overlap with y-axis labels.
+  - **Responsive sizing** — `build_single_model_figure` default height raised 320 → 420 px; `build_ht_figure` gains explicit `height=480` in `update_layout`.
 - [X] **GCS UI Refactor (2026-02-26)**:
   - `GCSParams` dataclass added to `models/schemas.py` (lon, lat, tilt, half_angle, kappa)
   - `DEFAULT_OBS_ROWS` added to `config.py` (compact datetime + height only)

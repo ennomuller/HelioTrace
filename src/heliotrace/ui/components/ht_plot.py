@@ -50,7 +50,7 @@ def build_ht_figure(
             mode="markers",
             name="GCS heights",
             error_y=dict(type="constant", value=height_error, visible=True, thickness=1.5, width=5),
-            marker=dict(color="#E63946", size=9, symbol="circle"),
+            marker=dict(color="#d62728", size=9, symbol="circle"),
             hovertemplate="<b>%{x|%Y-%m-%d %H:%M}</b><br>Height: %{y:.2f} R☉<extra></extra>",
         )
     )
@@ -61,7 +61,7 @@ def build_ht_figure(
             y=fit_heights,
             mode="lines",
             name=f"Linear fit (χ² = {chi_squared:.2f})",
-            line=dict(color="#1D3557", width=2),
+            line=dict(color="#1f77b4", width=2),
             hovertemplate="Fit: %{y:.2f} R☉<extra></extra>",
         )
     )
@@ -72,7 +72,7 @@ def build_ht_figure(
         x=0.98, y=0.06,
         showarrow=False, align="right",
         bgcolor="white", bordercolor="#888", borderwidth=1,
-        font=dict(size=15, color="#1D3557"),
+        font=dict(size=15, color="#1f77b4"),
     )
 
     fig.update_layout(
@@ -84,6 +84,7 @@ def build_ht_figure(
                     font=dict(size=13)),
         hovermode="x unified",
         margin=dict(t=30, b=60, l=60, r=20),
+        height=480,
         plot_bgcolor="white",
         paper_bgcolor="white",
     )
