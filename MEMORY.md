@@ -7,16 +7,21 @@
 
 ---
 
-## 📍 Current State (2026-02-24)
+## 📍 Current State (2026-02-26)
 
-**Enterprise refactor complete.** The project was migrated from an ad-hoc `app/` layout
-to a proper `src/heliotrace/` installable package. All 9 smoke tests pass; the old source
-tree (`app/`, `gcs/`, `utils/`, `requirements.txt`) has been deleted. Entry point is now
-`streamlit run app.py`.
+**Housekeeping sprint complete.** Navigation uses `st.navigation()` (Streamlit ≥ 1.36);
+home page content lives in `pages/home.py`; `app.py` is a thin 25-line host. All
+"CME Explorer" internal name remnants replaced with "HelioTrace". `geometry.py`
+now credits `gcs_python` by name. 27 `__pycache__`/`egg-info` artefacts de-indexed
+from git. All 9 smoke tests pass.
 
-### Repository layout (post-refactor)
+### Repository layout (post-housekeeping)
 
 ```
+app.py                   ← thin entry point: st.set_page_config + st.navigation().run()
+pages/
+  home.py               ← Home page content (🏠 Home in nav)
+  01_CME_Propagation.py ← Propagation Simulator page (🚀 Propagation Simulator in nav)
 src/heliotrace/           ← installable package (pip install -e .)
   __init__.py             ← exposes __version__ = "0.1.0"
   config.py               ← TARGET_PRESETS, DEFAULT_GCS_ROWS, session-state key constants
@@ -51,12 +56,13 @@ docker-compose.yml        ← default (prod) + dev profile (targeted volume moun
 README.md                 ← setup + run instructions
 ```
 
-### Validation (2026-02-24)
+### Validation (2026-02-26)
 
 - `pip install -e .` → ✅ resolves all deps, no double-install
 - `python -c "import heliotrace; print(heliotrace.__version__)"` → `0.1.0` ✅
-- `pytest tests/ -v` → **9/9 passed in 9.18 s** ✅
+- `pytest tests/ -v` → **9/9 passed in 4.21 s** ✅
 - End-to-end: 773 km/s apex, ~69.4 h DBM transit to Earth (2023-10-28 event) ✅
+- `streamlit run app.py` → navigation shows **🏠 Home** and **🚀 Propagation Simulator** ✅
 
 ---
 
@@ -116,11 +122,22 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
 - [X] **H-T Plot**: Plotly scatter + linear fit + velocity annotation
 - [X] **KPI cards**: Transit time, impact speed, arrival time, ΔToA vs expected
 - [X] **Enterprise refactor**: `src/` layout, type hints, logging, tests scaffold, Docker, README
+- [X] **Housekeeping sprint (2026-02-26)**:
+  - `st.navigation()` host — page labels **🏠 Home** / **🚀 Propagation Simulator**
+  - Home page content moved to `pages/home.py`; `app.py` is 25-line thin host
+  - All "CME Explorer" internal strings → "HelioTrace"
+  - `geometry.py` docstring now credits `gcs_python` (Johan von Forstner) by name
+  - `format="%.1f"` added to lon/lat `st.number_input` widgets
+  - 27 `__pycache__` / `egg-info` artefacts de-indexed from git (`git rm --cached`)
 - [ ] **Polish**: `st.toast` notifications, responsive layout tweaks
 - [ ] **Multiple events**: Save/load named event presets (local JSON or `st.session_state` export)
 - [ ] **Unit test coverage**: Expand `tests/` beyond smoke — parametrised physics edge cases, and importantly results of calculation methods so future changes don't introduce unexpected inaccuracies that are hard to trace, at least for (but not limited to) the following:
   - [ ] on a mini
 - [ ] **CI**: GitHub Actions workflow (lint + pytest on push)
+- [ ] **Live target positions**: Replace static `st.caption` placeholder with JPL Horizons lookup via Astropy `get_body_barycentric` or SunPy `get_horizons_coord` (TODO comment already in `pages/home.py`)
+- [ ] **Shareable simulation URL**: Encode params in query string via `st.query_params`
+- [ ] **Export results**: Download CSV / JSON of propagation series from Tab 2
+- [ ] **Multi-target comparison**: Run DBM/MODBM for several targets in a single session
 
 ---
 

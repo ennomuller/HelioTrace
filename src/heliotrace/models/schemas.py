@@ -1,5 +1,5 @@
 """
-Pure data model definitions for the CME Explorer simulation pipeline.
+Pure data model definitions for the HelioTrace simulation pipeline.
 
 Design principles:
 - All dataclasses are plain Python — zero Streamlit coupling.

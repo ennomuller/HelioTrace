@@ -25,16 +25,6 @@ from heliotrace.ui.state import init_session_state
 from heliotrace.ui.utils import format_diff
 
 # ---------------------------------------------------------------------------
-# Page configuration
-# ---------------------------------------------------------------------------
-st.set_page_config(
-    page_title="CME Propagation — CME Explorer",
-    page_icon="🚀",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# ---------------------------------------------------------------------------
 # Cached helpers — plain / hashable args ensure reliable cache keys
 # ---------------------------------------------------------------------------
 

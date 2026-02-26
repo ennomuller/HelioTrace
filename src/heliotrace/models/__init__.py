@@ -1,4 +1,4 @@
-"""Data models and session-state schemas for CME Explorer."""
+"""Data models and session-state schemas for HelioTrace."""
 
 from heliotrace.models.schemas import (
     TargetConfig,

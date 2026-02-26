@@ -1,5 +1,5 @@
 """
-Sidebar input panel for CME Explorer.
+Sidebar input panel for HelioTrace.
 
 Renders all user-controllable parameters and returns a ``(SimulationConfig, run_clicked)`` tuple.
 """
@@ -64,8 +64,8 @@ def render_sidebar() -> tuple[SimulationConfig, bool]:
 
         if is_custom:
             target_name = st.text_input("Target name", value="Custom")
-            target_lon  = st.number_input("Longitude [deg]", value=0.0,  min_value=-180.0, max_value=180.0, step=0.5)
-            target_lat  = st.number_input("Latitude [deg]",  value=0.0,  min_value=-90.0,  max_value=90.0,  step=0.5)
+            target_lon  = st.number_input("Longitude [deg]", value=0.0,  min_value=-180.0, max_value=180.0, step=0.5, format="%.1f")
+            target_lat  = st.number_input("Latitude [deg]",  value=0.0,  min_value=-90.0,  max_value=90.0,  step=0.5, format="%.1f")
             target_dist = st.number_input("Distance [AU]",   value=1.0,  min_value=0.01,   max_value=5.0,   step=0.01, format="%.3f")
         else:
             target_name = preset_choice.split(" (")[0]

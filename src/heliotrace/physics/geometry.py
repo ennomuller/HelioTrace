@@ -1,9 +1,12 @@
 """
 GCS (Graduated Cylindrical Shell) mesh geometry.
 
-Ported from the IDL reference implementations:
+Adapted from the **gcs_python** library by Johan von Forstner
+  <https://github.com/johan12345/gcs_python> (MIT License),
+which is a Python port of the IDL reference implementations:
   - shellskeleton.pro  (skeleton axis)
   - cmecloud.pro       (full point cloud)
+by Andreas Thernisien (original GCS model author).
 
 All public functions use plain NumPy arrays.  ``gcs_mesh_sunpy`` is a
 notebook-only convenience wrapper and requires the optional ``sunpy`` package.
