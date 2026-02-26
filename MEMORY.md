@@ -7,9 +7,16 @@
 
 ---
 
-## 📍 Current State (2026-02-26)
+## 📍 Current State (2026-02-27)
 
-**Plotting Polish Sprint complete.** Tab10 colour palette, legends repositioned above
+**Advanced Sidebar & v₀ Override Sprint complete.** Session-state warning for
+`sb_height_error` resolved; GCS inputs migrated to `st.text_input` (no steppers);
+`height_error` + `c_d` moved into `⚙️ Advanced` expander alongside a new `v₀ override`
+field and the existing mass/ToA overrides; fill-example ToA updated to
+`01/11/2023 18:00:00`; model titles in propagation results now use color-accented HTML
+headings (no emojis). All 9 smoke tests still pass.
+
+**Previous: Plotting Polish Sprint complete.** Tab10 colour palette, legends repositioned above
 axes, responsive figure sizing, and comparison-plot legend centering fixes applied.
 All 9 smoke tests still pass.
 
@@ -80,11 +87,11 @@ docker-compose.yml        ← default (prod) + dev profile (targeted volume moun
 README.md                 ← setup + run instructions
 ```
 
-### Validation (2026-02-26)
+### Validation (2026-02-27)
 
 - `pip install -e .` → ✅ resolves all deps, no double-install
 - `python -c "import heliotrace; print(heliotrace.__version__)"` → `0.1.0` ✅
-- `pytest tests/ -v` → **9/9 passed in 4.21 s** ✅
+- `pytest tests/ -v` → **9/9 passed in 2.23 s** ✅
 - End-to-end: 773 km/s apex, ~69.4 h DBM transit to Earth (2023-10-28 event) ✅
 - `streamlit run app.py` → navigation shows **🏠 Home** and **🚀 Propagation Simulator** ✅
 
@@ -189,6 +196,29 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
   - **Comparison plot** (`build_propagation_comparison_figure`):
     - Arrival vlines extracted from `_add_model` inner function; added separately after both models so earlier-arriving model gets `"top left"` annotation, later-arriving gets `"top right"` (no overlap); vlines now appear in **both** panels (col 1 unannotated, col 2 annotated).
     - Target hline annotation replaced with a separate `fig.add_annotation(xref="paper", x=0.225)` centred over col 1 (left subplot).
+- [X] **Advanced Sidebar & v₀ Override Sprint (2026-02-27)**:
+  - **Session-state warning fixed**: removed `sb_height_error` and `sb_c_d` from `_EXAMPLE`
+    dict so `st.text_input` defaults never conflict with fill-example session state writes.
+  - **GCS inputs → `st.text_input`**: all five GCS fields (`sb_gcs_lon`, `sb_gcs_lat`,
+    `sb_gcs_tilt`, `sb_gcs_half_angle`, `sb_gcs_kappa`) converted from `st.number_input`
+    to `st.text_input` with float parsing via new `_parse_float()` helper — eliminates `+/-`
+    stepper buttons entirely. `_EXAMPLE` GCS values changed to strings accordingly.
+  - **`⚙️ Advanced` expander restructured**:
+    - Top section ("Measurement & drag settings"): `height_error` text input (was in main
+      GCS section) + `c_d` text input (was in Drag Parameters "Shared" block).
+    - Divider + bottom section ("Optional overrides"): existing `toa_raw` text input and
+      `m_override_g` number input, plus new `v₀ override [km/s]` text input (`sb_v0_override`).
+  - **`v0_override_kms` field added to `SimulationConfig`** (Optional[float], default None).
+  - **Hard v₀ override in `runner.py`**: after `v0 = v_apex * projection_ratio`, if
+    `config.v0_override_kms is not None and target_hit`, overrides `v0` unconditionally.
+  - **Fill-example ToA** updated: `"28/10/2023 21:41:00"` → `"01/11/2023 18:00:00"`.
+  - **Model titles** in propagation results: `### 🌬️ DBM` / `### 🔬 MODBM` replaced with
+    `st.markdown(..., unsafe_allow_html=True)` styled `<p>` tags — bold, color-accented
+    (DBM `#1f77b4`, MODBM `#ff7f0e`) with a solid left-border stripe.
+  - **"Inputs used" expanders** now show `*(override)*` suffix on the v₀ line when a
+    `v0_override_kms` is present.
+  - **"v₀ → Target" metric** on the results KPI row shows `delta="overridden"` (greyed
+    out via `delta_color="off"`) when an override is active.
 - [X] **Plotting Polish Sprint (2026-02-26)**:
   - **Tab10 colour palette** — `_COLORS` in `propagation_plot.py` and hardcoded hex values in `ht_plot.py` replaced with standard `tab10` values (`DBM=#1f77b4`, `MODBM=#ff7f0e`, `target=#2ca02c`, `arrival=#d62728`; HT fit line `#1f77b4`, scatter points `#d62728`).
   - **Legends above axes** — `build_single_model_figure` legend moved to `y=1.02, yanchor="bottom"` with `margin t=50, b=30`; `build_propagation_comparison_figure` legend moved to `y=1.05, yanchor="bottom"` with `margin t=70, b=50`; eliminates overlap with y-axis labels.

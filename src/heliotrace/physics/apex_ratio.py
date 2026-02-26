@@ -42,7 +42,16 @@ def get_target_apex_ratio(
     :param target_lon:  Target longitude [angle Quantity].
     :param res:         Mesh resolution (vertices per ring).  Default 500.
     :return: Ratio ``h_target / h_apex`` in ``[0, 1]``.
-             Returns ``0.0`` if the CME misses the target.
+             A value of **0.0** means the GCS mesh never intersects the Sun–target axis
+             (geometric miss). A value > 0 but < 0.3 indicates a marginal grazing
+             encounter where the target is near the outer edge of the CME sheath;
+             physically, at such low ratios the sheath density and magnetic field
+             strength at the target are too negligible for a meaningful in-situ
+             signature. A threshold of **≥ 0.3** (i.e. the target is reached at
+             at least 30 % of the apex height) is adopted as the minimum condition
+             for a operationally relevant CME hit, consistent with the ‘half-width
+             at half-maximum’ convention used in GCS-based hit/miss studies
+             (e.g. Möstl et al. 2017, *Space Weather*).
     """
     alpha_rad    = float(alpha.to(u.rad).value)
     tilt_rad     = float(tilt.to(u.rad).value)

@@ -65,6 +65,28 @@ def _cached_projection_ratio(
     )
 
 
+
+# ---------------------------------------------------------------------------
+# Compact metric HTML helper (avoids oversized st.metric in cramped columns)
+# ---------------------------------------------------------------------------
+
+def _mini_metric(label: str, value: str, delta: str | None = None, delta_positive: bool | None = None) -> str:
+    """Return an HTML snippet for a compact labelled value card."""
+    if delta is not None and delta_positive is not None:
+        _dc = "#2ca02c" if delta_positive else "#d62728"
+        _dh = f'<div style="font-size:1.0rem;color:{_dc};margin-top:2px">{delta}</div>'
+    else:
+        _dh = ""
+    return (
+        '<div style="padding:6px 8px 4px 8px">'
+        f'<div style="font-size:0.85rem;color:#888;text-transform:uppercase;'
+        f'letter-spacing:0.04em;margin-bottom:2px">{label}</div>'
+        f'<div style="font-size:1.4rem;font-weight:600;line-height:1.3">{value}</div>'
+        f'{_dh}'
+        '</div>'
+    )
+
+
 # ---------------------------------------------------------------------------
 # Initialise session state + render sidebar
 # ---------------------------------------------------------------------------
@@ -140,17 +162,18 @@ with tab1:
                 target_lon_deg=config.target.lon,
             )
 
-        target_hit_geometry = proj_ratio > 0
+        target_hit_geometry = proj_ratio >= 0.3
 
         if target_hit_geometry:
             st.success(
                 f"✓ **HIT** — The CME flank intercepts **{config.target.name}** "
-                f"at a projection ratio of **{proj_ratio:.4f}**."
+                f"at a projection ratio of **{proj_ratio:.4f}** (≥ 0.3 threshold)."
             )
         else:
             st.error(
-                f"**GEOMETRY: MISS** — The CME does not encompass **{config.target.name}** "
-                "with the current GCS parameters. Adjust longitude, latitude, or half-angle."
+                f"**GEOMETRY: MISS** — Projection ratio {proj_ratio:.4f} < 0.3. "
+                "The GCS CME body does not sufficiently encompass the target direction. "
+                "Adjust longitude, latitude, or half-angle."
             )
 
         gcs_fig = build_gcs_figure(
@@ -196,9 +219,8 @@ with tab1:
         v_col, proj_col, target_col, _ = st.columns([1, 1, 1, 1])
         v_col.metric(
             "Apex Velocity",
-            f"{derived.v_apex_kms:.0f} km/s",
-            delta=f"±{derived.v_apex_error_kms:.0f} km/s",
-            help="CME apex velocity from the weighted linear H-T fit.",
+            f"{derived.v_apex_kms:.0f} ± {derived.v_apex_error_kms:.0f} km/s",
+            help="CME apex velocity and 1σ uncertainty from the weighted linear H-T fit.",
         )
         proj_col.metric(
             "Projection Ratio",
@@ -269,12 +291,20 @@ with tab2:
     # --------------------------------------------------------
     # Summary KPI cards
     # --------------------------------------------------------
+    st.markdown("""
+    <style>
+    [data-testid="stMetricValue"] {
+        font-size: 1.4rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     st.subheader("Key Results")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Apex Velocity",    f"{results.derived.v_apex_kms:.0f} km/s",
-              delta=f"±{results.derived.v_apex_error_kms:.0f}")
+    c1.metric("Apex Velocity",    f"{results.derived.v_apex_kms:.0f} ± {results.derived.v_apex_error_kms:.0f} km/s",
+              help="CME apex velocity and 1σ uncertainty from the weighted linear H-T fit.")
     c2.metric("Projection Ratio", f"{results.projection_ratio:.4f}")
-    c3.metric("v₀ → Target",      f"{results.v0_kms:.0f} km/s")
+    _v0_delta = "overridden" if (stored_config and stored_config.v0_override_kms is not None) else None
+    c3.metric("v₀ → Target",      f"{results.v0_kms:.0f} km/s", delta=_v0_delta, delta_color="off")
     c4.metric("Target Distance",  f"{stored_config.target.distance:.3f} AU")
 
     # --------------------------------------------------------
@@ -284,27 +314,65 @@ with tab2:
     col_dbm, col_modbm = st.columns(2)
 
     with col_dbm:
-        st.markdown("### 🌬️ DBM")
+        st.markdown(
+            '<div style="text-align:center;font-size:1.2rem;font-weight:700;color:#1f77b4;'
+            'border:2px solid #1f77b4;background:#eaf2fb;border-radius:6px;'
+            'padding:5px 0;margin:0 0 10px 0;">DBM</div>',
+            unsafe_allow_html=True,
+        )
         if results.arrival_time_DBM:
-            d1, d2, d3 = st.columns(3)
-            d1.metric("Transit", f"{results.elapsed_time_DBM_h:.1f} h")
-            d2.metric("Impact",  f"{results.velocity_arrival_DBM_kms:.0f} km/s")
-            d3.metric("Arrival", results.arrival_time_DBM.strftime("%d %b %H:%M UT"))
             diff_dbm = format_diff(results.arrival_time_DBM, toa_expected)
+            mc1, mc2 = st.columns(2)
+            mc1.markdown(_mini_metric("Arrival", results.arrival_time_DBM.strftime("%d.%m. %H:%M")), unsafe_allow_html=True)
             if diff_dbm:
-                sign_color = "normal" if float(diff_dbm.split()[0]) >= 0 else "inverse"
-                st.metric("Δ vs Expected ToA", diff_dbm, delta_color=sign_color)
+                _pos = not diff_dbm.startswith("-")
+                mc2.markdown(_mini_metric("Δ vs Expected", diff_dbm, delta=diff_dbm, delta_positive=_pos), unsafe_allow_html=True)
+            mc3, mc4 = st.columns(2)
+            mc3.markdown(_mini_metric("Transit", f"{results.elapsed_time_DBM_h:.1f} h"), unsafe_allow_html=True)
+            mc4.markdown(_mini_metric("Impact",  f"{results.velocity_arrival_DBM_kms:.0f} km/s"), unsafe_allow_html=True)
         else:
             st.warning("DBM did not reach the target within the integration window.")
 
         with st.expander("Inputs used — DBM", expanded=False):
             d = results.derived
-            st.markdown(f"- r₀ = {d.r0_rsun:.2f} R☉  |  t₀ = {d.t0.strftime('%Y-%m-%d %H:%M UT')}")
-            st.markdown(f"- v_apex = {d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f} km/s")
-            st.markdown(f"- v₀ → {stored_config.target.name} = {results.v0_kms:.0f} km/s")
-            st.markdown(f"- α = {d.alpha_deg:.1f}°  |  κ = {d.kappa:.3f}")
-            st.markdown(f"- lon = {d.lon_deg:.1f}°  |  lat = {d.lat_deg:.1f}°  |  tilt = {d.tilt_deg:.1f}°")
-            st.markdown(f"- w = {stored_config.w:.0f} km/s  |  c_d = {stored_config.c_d}")
+            _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
+            ec1, ec2 = st.columns(2)
+            ec1.metric("r₀ [R☉]", f"{d.r0_rsun:.2f}",
+                help="Initial apex height: greatest observed coronagraph height, used as the "
+                     "starting position r(t=0) of the drag ODE [R☉].")
+            ec2.metric("t₀", d.t0.strftime("%d.%m. %H:%M"),
+                help="Reference launch time: timestamp of the last (highest) coronagraph "
+                     "observation, used as t=0 for the ODE integration.")
+            st.metric("vₐₚₑₓ [km/s]", f"{d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f}",
+                help="CME apex velocity and 1σ uncertainty from the weighted linear "
+                     "height-time fit. Represents the outward speed of the outermost "
+                     "point of the GCS flux rope.")
+            st.metric(f"v₀ → {stored_config.target.name} [km/s]", f"{results.v0_kms:.0f}{_v0_note}",
+                help="Initial CME speed projected onto the Sun–target line of sight: "
+                     "v₀ = vₐₚₑₓ × projection ratio. This is the starting velocity "
+                     "fed into the 1-D drag equation.")
+            ea1, ea2 = st.columns(2)
+            ea1.metric("α [deg]", f"{d.alpha_deg:.1f}",
+                help="GCS half-angle α: angular half-width of the CME flux-rope shell. "
+                     "Controls the lateral (longitudinal) extent of the ejecta.")
+            ea2.metric("κ", f"{d.kappa:.3f}",
+                help="GCS aspect ratio κ: ratio of the cross-section radius to the apex "
+                     "distance. Determines how 'fat' the flux rope appears in projection.")
+            eb1, eb2 = st.columns(2)
+            eb1.metric("lon [deg]", f"{d.lon_deg:.1f}",
+                help="Stonyhurst heliographic longitude of the CME source region "
+                     "(Carrington frame, Earth at 0°).")
+            eb2.metric("lat [deg]", f"{d.lat_deg:.1f}",
+                help="Stonyhurst heliographic latitude of the CME source region.")
+            st.metric("tilt [deg]", f"{d.tilt_deg:.1f}",
+                help="Tilt of the CME flux-rope axis relative to the solar equatorial plane. "
+                     "Positive tilt = north-east orientation of the axis.")
+            st.metric("w [km/s]", f"{stored_config.w:.0f}",
+                help="Constant ambient solar wind speed used by the standard DBM as the "
+                     "asymptotic drag velocity (CME decelerates toward w). Typical: 300–600 km/s.")
+            st.metric("cₙ (drag coeff.)", f"{stored_config.c_d}",
+                help="Dimensionless aerodynamic drag coefficient. Theoretical value ≈1 for a "
+                     "sphere; converges to ≈1 for CMEs beyond ∼12 R☉ (Cargill 2004).")
 
         if results.dbm_series:
             dbm_fig = build_single_model_figure(
@@ -317,29 +385,75 @@ with tab2:
             st.plotly_chart(dbm_fig, use_container_width=True)
 
     with col_modbm:
-        st.markdown("### 🔬 MODBM")
+        st.markdown(
+            '<div style="text-align:center;font-size:1.2rem;font-weight:700;color:#ff7f0e;'
+            'border:2px solid #ff7f0e;background:#fff3e6;border-radius:6px;'
+            'padding:5px 0;margin:0 0 10px 0;">MODBM</div>',
+            unsafe_allow_html=True,
+        )
         if results.arrival_time_MODBM:
-            d1, d2, d3 = st.columns(3)
-            d1.metric("Transit", f"{results.elapsed_time_MODBM_h:.1f} h")
-            d2.metric("Impact",  f"{results.velocity_arrival_MODBM_kms:.0f} km/s")
-            d3.metric("Arrival", results.arrival_time_MODBM.strftime("%d %b %H:%M UT"))
             diff_modbm = format_diff(results.arrival_time_MODBM, toa_expected)
+            mc1, mc2 = st.columns(2)
+            mc1.markdown(_mini_metric("Arrival", results.arrival_time_MODBM.strftime("%d.%m. %H:%M")), unsafe_allow_html=True)
             if diff_modbm:
-                sign_color = "normal" if float(diff_modbm.split()[0]) >= 0 else "inverse"
-                st.metric("Δ vs Expected ToA", diff_modbm, delta_color=sign_color)
+                _pos = not diff_modbm.startswith("-")
+                mc2.markdown(_mini_metric("Δ vs Expected", diff_modbm, delta=diff_modbm, delta_positive=_pos), unsafe_allow_html=True)
+            mc3, mc4 = st.columns(2)
+            mc3.markdown(_mini_metric("Transit", f"{results.elapsed_time_MODBM_h:.1f} h"), unsafe_allow_html=True)
+            mc4.markdown(_mini_metric("Impact",  f"{results.velocity_arrival_MODBM_kms:.0f} km/s"), unsafe_allow_html=True)
         else:
             st.warning("MODBM did not reach the target within the integration window.")
 
         with st.expander("Inputs used — MODBM", expanded=False):
             d = results.derived
-            st.markdown(f"- r₀ = {d.r0_rsun:.2f} R☉  |  t₀ = {d.t0.strftime('%Y-%m-%d %H:%M UT')}")
-            st.markdown(f"- v_apex = {d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f} km/s")
-            st.markdown(f"- v₀ → {stored_config.target.name} = {results.v0_kms:.0f} km/s")
-            st.markdown(f"- α = {d.alpha_deg:.1f}°  |  κ = {d.kappa:.3f}")
-            st.markdown(f"- lon = {d.lon_deg:.1f}°  |  lat = {d.lat_deg:.1f}°  |  tilt = {d.tilt_deg:.1f}°")
+            _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
             _mass = f"{stored_config.m_override_g:.2e} g" if stored_config.m_override_g else "Pluta (2018)"
-            st.markdown(f"- w_type = {stored_config.w_type}  |  SSN = {stored_config.ssn:.0f}")
-            st.markdown(f"- c_d = {stored_config.c_d}  |  mass = {_mass}")
+            ec1, ec2 = st.columns(2)
+            ec1.metric("r₀ [R☉]", f"{d.r0_rsun:.2f}",
+                help="Initial apex height: greatest observed coronagraph height, used as the "
+                     "starting position r(t=0) of the drag ODE [R☉].")
+            ec2.metric("t₀", d.t0.strftime("%d.%m. %H:%M"),
+                help="Reference launch time: timestamp of the last (highest) coronagraph "
+                     "observation, used as t=0 for the ODE integration.")
+            st.metric("vₐₚₑₓ [km/s]", f"{d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f}",
+                help="CME apex velocity and 1σ uncertainty from the weighted linear "
+                     "height-time fit. Represents the outward speed of the outermost "
+                     "point of the GCS flux rope.")
+            st.metric(f"v₀ → {stored_config.target.name} [km/s]", f"{results.v0_kms:.0f}{_v0_note}",
+                help="Initial CME speed projected onto the Sun–target line of sight: "
+                     "v₀ = vₐₚₑₓ × projection ratio. This is the starting velocity "
+                     "fed into the 1-D drag equation.")
+            ea1, ea2 = st.columns(2)
+            ea1.metric("α [deg]", f"{d.alpha_deg:.1f}",
+                help="GCS half-angle α: angular half-width of the CME flux-rope shell. "
+                     "Controls the lateral (longitudinal) extent of the ejecta.")
+            ea2.metric("κ", f"{d.kappa:.3f}",
+                help="GCS aspect ratio κ: ratio of the cross-section radius to the apex "
+                     "distance. Determines how 'fat' the flux rope appears in projection.")
+            eb1, eb2 = st.columns(2)
+            eb1.metric("lon [deg]", f"{d.lon_deg:.1f}",
+                help="Stonyhurst heliographic longitude of the CME source region "
+                     "(Carrington frame, Earth at 0°).")
+            eb2.metric("lat [deg]", f"{d.lat_deg:.1f}",
+                help="Stonyhurst heliographic latitude of the CME source region.")
+            st.metric("tilt [deg]", f"{d.tilt_deg:.1f}",
+                help="Tilt of the CME flux-rope axis relative to the solar equatorial plane. "
+                     "Positive tilt = north-east orientation of the axis.")
+            ew1, ew2 = st.columns(2)
+            ew1.metric("Wind regime", stored_config.w_type,
+                help="Background solar wind regime used by the MODBM density profile "
+                     "(Venzmer & Bothmer 2018). 'slow' ≈ 300–400 km/s; 'fast' ≈ 600–800 km/s.")
+            ew2.metric("SSN", f"{stored_config.ssn:.0f}",
+                help="Monthly smoothed total sunspot number. Controls the amplitude of the "
+                     "structured solar wind density profile in MODBM (higher SSN = denser wind "
+                     "near solar maximum).")
+            st.metric("cₙ (drag coeff.)", f"{stored_config.c_d}",
+                help="Dimensionless aerodynamic drag coefficient. Theoretical value ≈1 for a "
+                     "sphere; converges to ≈1 for CMEs beyond ∼12 R☉ (Cargill 2004).")
+            st.metric("CME mass", _mass,
+                help="Total CME mass used in the momentum equation. Either a manual override "
+                     "or the Pluta (2018) empirical formula: log₁₀(M/g) = 3.4×10⁻⁴ v + 15.479, "
+                     "where v is the apex velocity in km/s.")
 
         if results.modbm_series:
             modbm_fig = build_single_model_figure(

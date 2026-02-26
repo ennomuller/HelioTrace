@@ -147,8 +147,12 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
         target_lon=config.target.lon * u.deg,
     )
 
-    target_hit = projection_ratio > 0
+    target_hit = projection_ratio >= 0.3
     v0 = v_apex * projection_ratio if target_hit else (0.0 * u.km / u.s)
+
+    if config.v0_override_kms is not None and target_hit:
+        v0 = config.v0_override_kms * u.km / u.s
+        logger.info("v0 override applied: %.1f km/s", config.v0_override_kms)
 
     # --- 3) Drag parameters ---
     M_override = (config.m_override_g * u.g) if config.m_override_g is not None else None

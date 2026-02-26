@@ -21,22 +21,30 @@ from heliotrace.models.schemas import GCSParams, SimulationConfig, TargetConfig
 # ---------------------------------------------------------------------------
 _EXAMPLE: dict = {
     "sb_event_str":      "20231028",
-    "sb_gcs_lon":        5.5,
-    "sb_gcs_lat":        -20.1,
-    "sb_gcs_tilt":       -7.5,
-    "sb_gcs_half_angle": 30.0,
-    "sb_gcs_kappa":      0.42,
-    "sb_height_error":   0.25,
+    "sb_gcs_lon":        "5.5",
+    "sb_gcs_lat":        "-20.1",
+    "sb_gcs_tilt":       "-7.5",
+    "sb_gcs_half_angle": "30.0",
+    "sb_gcs_kappa":      "0.42",
     "sb_w":              390,
     "sb_w_type":         "slow",
     "sb_ssn":            100,
-    "sb_c_d":            1.0,
-    "sb_toa_raw":        "28/10/2023 21:41:00",
+    "sb_toa_raw":        "31/10/2023 14:00:00",
 }
 
 _EMPTY_OBS_DF = pd.DataFrame(
     {"datetime": pd.Series(dtype="object"), "height": pd.Series(dtype=float)}
 )
+
+
+def _parse_float(text: str | None, default: float | None = None) -> float | None:
+    """Parse a text-input string to float; returns ``default`` on empty or invalid input."""
+    if not text or not text.strip():
+        return default
+    try:
+        return float(text.strip())
+    except ValueError:
+        return default
 
 
 def _fill_example() -> None:
@@ -143,60 +151,47 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         st.subheader("🐚 GCS Parameters")
 
         c_lon, c_lat, c_tilt = st.columns(3)
-        gcs_lon = c_lon.number_input(
+        gcs_lon_str = c_lon.text_input(
             "Lon [deg]",
-            value=None,
-            placeholder="-180 – 180",
-            min_value=-180.0, max_value=180.0, step=0.5, format="%.1f",
+            placeholder="[-180, 180]",
             key="sb_gcs_lon",
             help="Stonyhurst heliographic longitude of the CME source region [deg].",
         )
-        gcs_lat = c_lat.number_input(
+        gcs_lat_str = c_lat.text_input(
             "Lat [deg]",
-            value=None,
-            placeholder="-90 – 90",
-            min_value=-90.0, max_value=90.0, step=0.5, format="%.1f",
+            placeholder="[-90, 90]",
             key="sb_gcs_lat",
             help="Stonyhurst heliographic latitude of the CME source [deg].",
         )
-        gcs_tilt = c_tilt.number_input(
+        gcs_tilt_str = c_tilt.text_input(
             "Tilt [deg]",
-            value=None,
-            placeholder="-90 – 90",
-            min_value=-90.0, max_value=90.0, step=0.5, format="%.1f",
+            placeholder="[-90, 90]",
             key="sb_gcs_tilt",
             help="Tilt of the CME flux-rope axis relative to the solar equatorial plane [deg].",
         )
+        gcs_lon   = _parse_float(gcs_lon_str)
+        gcs_lat   = _parse_float(gcs_lat_str)
+        gcs_tilt  = _parse_float(gcs_tilt_str)
 
         c_ha, c_kp = st.columns(2)
-        gcs_half_angle = c_ha.number_input(
+        gcs_half_angle_str = c_ha.text_input(
             "Half-angle α [deg]",
-            value=None,
-            placeholder="0.1 – 89.9 (typ. 15–45)",
-            min_value=0.1, max_value=89.9, step=0.5, format="%.1f",
+            placeholder="[0.1, 89.9]",
             key="sb_gcs_half_angle",
-            help="GCS half-angle α: angular half-width of the CME shell [deg]. Typical: 15–45°.",
+            help="GCS half-angle α: angular half-width of the CME shell [deg]. Valid: [0.1°, 89.9°].",
         )
-        gcs_kappa = c_kp.number_input(
+        gcs_kappa_str = c_kp.text_input(
             "Aspect ratio κ",
-            value=None,
-            placeholder="0.01 – 0.99 (typ. 0.2–0.6)",
-            min_value=0.01, max_value=0.99, step=0.01, format="%.2f",
+            placeholder="[0.01, 0.99]",
             key="sb_gcs_kappa",
-            help="GCS aspect ratio κ: cross-section radius / apex distance. Typical: 0.2–0.6.",
+            help="GCS aspect ratio κ: cross-section radius / apex distance. Valid: [0.01, 0.99].",
         )
+        gcs_half_angle = _parse_float(gcs_half_angle_str)
+        gcs_kappa      = _parse_float(gcs_kappa_str)
         if gcs_half_angle and not 5.0 <= gcs_half_angle <= 60.0:
             st.warning("⚠️ Half-angle outside typical range 5–60°.")
         if gcs_kappa and not 0.1 <= gcs_kappa <= 0.8:
             st.warning("⚠️ κ outside typical range 0.1–0.8.")
-
-        height_error = st.number_input(
-            "Height error ± [R☉]",
-            value=0.25,
-            min_value=0.01, max_value=5.0, step=0.05, format="%.2f",
-            key="sb_height_error",
-            help="Symmetric ±uncertainty applied to every height measurement [R☉].",
-        )
 
         st.divider()
         # ------------------------------------------------------------------ #
@@ -240,20 +235,20 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         else:
             st.caption(f"✓ {valid_obs} valid observations.")
 
+        with st.expander("⚙️ Advanced"):
+            height_error_str: str = st.text_input(
+                "Height error ± [R☉]",
+                value="0.25",
+                key="sb_height_error",
+                help="Symmetric ±uncertainty applied to every height measurement [R☉].",
+            )
+            height_error: float = _parse_float(height_error_str, default=0.25) or 0.25
+
         st.divider()
         # ------------------------------------------------------------------ #
         # 5. Drag Model Parameters
         # ------------------------------------------------------------------ #
         st.subheader("🪂 Drag Parameters")
-
-        st.markdown("**Shared — DBM & MODBM**")
-        c_d = st.number_input(
-            "Drag coefficient c_d",
-            value=1.0,
-            min_value=0.1, max_value=5.0, step=0.1, format="%.1f",
-            key="sb_c_d",
-            help="Dimensionless drag coefficient (converges to ~1 beyond ~12 R☉, Cargill 2004).",
-        )
 
         st.markdown("**DBM only**")
         w = st.slider(
@@ -284,6 +279,17 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         # 6. Advanced / Optional
         # ------------------------------------------------------------------ #
         with st.expander("⚙️ Advanced"):
+            st.caption("Drag settings")
+            c_d_str: str = st.text_input(
+                "Drag coefficient c_d",
+                value="1.0",
+                key="sb_c_d",
+                help="Dimensionless drag coefficient (converges to ~1 beyond ~12 R☉, Cargill 2004).",
+            )
+            c_d: float = _parse_float(c_d_str, default=1.0) or 1.0
+
+            st.divider()
+            st.caption("Optional overrides")
             toa_raw: Optional[str] = st.text_input(
                 "Expected arrival time (optional)",
                 key="sb_toa_raw",
@@ -308,6 +314,15 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             )
             m_override_g: Optional[float] = m_override_raw if m_override_raw > 0.0 else None
 
+            v0_override_str: str = st.text_input(
+                "v₀ override [km/s]  (blank = geometry-derived)",
+                key="sb_v0_override",
+                placeholder="e.g. 600",
+                help="Hard override for the CME velocity component directed at the target. "
+                     "Replaces the geometry-derived v₀ = v_apex × projection ratio.",
+            )
+            v0_override_kms: Optional[float] = _parse_float(v0_override_str)
+
         st.divider()
 
         # ------------------------------------------------------------------ #
@@ -330,6 +345,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         c_d=float(c_d or 1.0),
         toa_raw=toa_raw,
         m_override_g=m_override_g,
+        v0_override_kms=v0_override_kms,
     )
 
     gcs_params_entered: bool = all(
