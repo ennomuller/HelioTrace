@@ -1,8 +1,8 @@
 """
 CME Propagation — Main simulation page.
 
-Tab 1: GCS Data Input & Geometry   (live; updates on every table edit)
-Tab 2: Propagation Results          (triggered by "Run Simulation" button)
+Tab 1: GCS Geometry & Height-Time Diagram  (live; updates reactively)
+Tab 2: Propagation Results                  (triggered by "Run Simulation" button)
 """
 from __future__ import annotations
 
@@ -13,8 +13,13 @@ import astropy.units as u
 import pandas as pd
 import streamlit as st
 
-from heliotrace.config import DEFAULT_GCS_ROWS, KEY_SIM_CONFIG, KEY_SIM_RESULTS
-from heliotrace.models.schemas import DerivedGCSParams, SimulationConfig, SimulationResults
+from heliotrace.config import KEY_SIM_CONFIG, KEY_SIM_RESULTS
+from heliotrace.models.schemas import (
+    DerivedGCSParams,
+    GCSParams,
+    SimulationConfig,
+    SimulationResults,
+)
 from heliotrace.physics.apex_ratio import get_target_apex_ratio
 from heliotrace.simulation.runner import derive_gcs_params, run_full_simulation
 from heliotrace.ui.components.gcs_plot import build_gcs_figure
@@ -46,7 +51,7 @@ def _cached_projection_ratio(
 ) -> float:
     """Cache the (CPU-heavy) GCS mesh projection computation."""
     return get_target_apex_ratio(
-        alpha=alpha_deg    * u.deg,
+        alpha=alpha_deg     * u.deg,
         kappa=kappa,
         cme_lat=cme_lat_deg * u.deg,
         cme_lon=cme_lon_deg * u.deg,
@@ -60,7 +65,7 @@ def _cached_projection_ratio(
 # Initialise session state + render sidebar
 # ---------------------------------------------------------------------------
 init_session_state()
-config, run_clicked = render_sidebar()
+config, gcs_params, obs_df, run_clicked = render_sidebar()
 
 # ---------------------------------------------------------------------------
 # Page header
@@ -73,137 +78,124 @@ st.caption(
 )
 
 # ---------------------------------------------------------------------------
+# Build the merged 7-column DataFrame (obs rows + GCS param columns broadcast)
+# This is required by derive_gcs_params and run_full_simulation.
+# ---------------------------------------------------------------------------
+_obs_clean = (
+    obs_df
+    .dropna(subset=["datetime", "height"])
+    .sort_values("datetime")
+    .reset_index(drop=True)
+)
+has_obs = len(_obs_clean) >= 2
+
+if has_obs:
+    clean_df: Optional[pd.DataFrame] = _obs_clean.copy()
+    clean_df["lon"]        = gcs_params.lon_deg
+    clean_df["lat"]        = gcs_params.lat_deg
+    clean_df["tilt"]       = gcs_params.tilt_deg
+    clean_df["half_angle"] = gcs_params.half_angle_deg
+    clean_df["kappa"]      = gcs_params.kappa
+else:
+    clean_df = None
+
+# ---------------------------------------------------------------------------
 # Main tabs
 # ---------------------------------------------------------------------------
-tab1, tab2 = st.tabs(["📡 GCS Data & Geometry", "📈 Propagation Results"])
+tab1, tab2 = st.tabs(["📡 GCS Geometry & Height-Time", "📈 Propagation Results"])
 
 
 # ============================================================
-# TAB 1 — GCS Data Input & Geometry (always live)
+# TAB 1 — Reactive GCS geometry + HT fit (no button required)
 # ============================================================
 with tab1:
-    st.subheader("GCS Observations")
-    st.markdown(
-        "Enter the GCS height-time measurements below. "
-        "Each row is one measurement epoch. "
-        "The Height-Time fit and 3D geometry update automatically."
-    )
-
-    col_info, col_table = st.columns([1, 2])
-
-    with col_info:
-        st.info(
-            "**Column guide**\n"
-            "- **datetime** — UTC observation time\n"
-            "- **lon / lat** — Stonyhurst coordinates [deg]\n"
-            "- **tilt** — Flux-rope tilt [deg]\n"
-            "- **half_angle** — GCS half-angle α [deg]\n"
-            "- **height** — CME front height [R☉]\n"
-            "- **kappa** — GCS aspect ratio κ"
-        )
-        st.caption(f"Height measurement error: **±{config.height_error} R☉** (set in sidebar)")
-
-    with col_table:
-        edited_df: pd.DataFrame = st.data_editor(
-            pd.DataFrame(DEFAULT_GCS_ROWS),
-            hide_index=True,
-            num_rows="dynamic",
-            use_container_width=True,
-            column_config={
-                "datetime":   st.column_config.DatetimeColumn("UTC Time",       required=True, format="YYYY-MM-DD HH:mm"),
-                "lon":        st.column_config.NumberColumn("Lon [deg]",        min_value=-180.0, max_value=180.0,  step=0.5,  format="%.1f"),
-                "lat":        st.column_config.NumberColumn("Lat [deg]",        min_value=-90.0,  max_value=90.0,   step=0.5,  format="%.1f"),
-                "tilt":       st.column_config.NumberColumn("Tilt [deg]",       min_value=-90.0,  max_value=90.0,   step=0.5,  format="%.1f"),
-                "half_angle": st.column_config.NumberColumn("Half Angle [deg]", min_value=0.0,    max_value=90.0,   step=0.5,  format="%.1f"),
-                "height":     st.column_config.NumberColumn("Height [R☉]",      min_value=0.1,    max_value=300.0,  step=0.1,  format="%.2f"),
-                "kappa":      st.column_config.NumberColumn("κ (kappa)",        min_value=0.01,   max_value=0.99,   step=0.01, format="%.2f"),
-            },
-            key="gcs_editor",
-        )
-
-    if len(edited_df) < 2:
-        st.info("ℹ️ Add at least **2 data rows** to see the Height-Time fit and GCS geometry.")
-        st.stop()
-
-    req_cols = ["datetime", "lon", "lat", "tilt", "half_angle", "height", "kappa"]
-    clean_df = edited_df.dropna(subset=req_cols).sort_values("datetime").reset_index(drop=True)
-
-    if len(clean_df) < 2:
-        st.warning("⚠️ Some rows have incomplete data — fill all columns in at least 2 rows.")
-        st.stop()
 
     # --------------------------------------------------------
-    # Cached linear H-T fit (single source of truth for v_apex)
+    # GCS 3D Model — always shown using sidebar GCS params
     # --------------------------------------------------------
-    derived: DerivedGCSParams = _cached_derived_params(clean_df, config.height_error)
-
-    # --------------------------------------------------------
-    # Height-Time diagram
-    # --------------------------------------------------------
-    st.divider()
-    st.subheader("Height-Time Diagram")
-
-    ht_fig = build_ht_figure(
-        df=clean_df,
-        height_error=config.height_error,
-        slope=derived.fit_slope,
-        intercept=derived.fit_intercept,
-        chi_squared=derived.fit_chi_squared,
-        v_apex_kms=derived.v_apex_kms,
-        v_apex_error_kms=derived.v_apex_error_kms,
-    )
-    st.plotly_chart(ht_fig, use_container_width=True)
-
-    # --------------------------------------------------------
-    # GCS 3D Geometry & Projection
-    # --------------------------------------------------------
-    st.divider()
-    st.subheader("GCS Geometry (3D) & Projection")
+    st.subheader("GCS Model (3D Geometry)")
 
     with st.spinner("Computing GCS geometry…  (cached after first run)"):
         proj_ratio = _cached_projection_ratio(
-            alpha_deg=derived.alpha_deg,
-            kappa=derived.kappa,
-            cme_lat_deg=derived.lat_deg,
-            cme_lon_deg=derived.lon_deg,
-            tilt_deg=derived.tilt_deg,
+            alpha_deg=gcs_params.half_angle_deg,
+            kappa=gcs_params.kappa,
+            cme_lat_deg=gcs_params.lat_deg,
+            cme_lon_deg=gcs_params.lon_deg,
+            tilt_deg=gcs_params.tilt_deg,
             target_lat_deg=config.target.lat,
             target_lon_deg=config.target.lon,
         )
 
     target_hit_geometry = proj_ratio > 0
 
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Apex Velocity",    f"{derived.v_apex_kms:.0f} km/s",
-              delta=f"±{derived.v_apex_error_kms:.0f}")
-    m2.metric("Projection Ratio", f"{proj_ratio:.4f}" if target_hit_geometry else "—")
-    m3.metric("v₀ toward Target", f"{derived.v_apex_kms * proj_ratio:.0f} km/s" if target_hit_geometry else "MISS")
-    m4.metric("Target",           config.target.name)
-
-    if not target_hit_geometry:
-        st.error(
-            f"**GEOMETRY: MISS** — The CME flank does not encompass **{config.target.name}** "
-            "with the current GCS parameters. Adjust longitude, latitude, or half-angle."
+    if target_hit_geometry:
+        st.success(
+            f"✓ **HIT** — The CME flank intercepts **{config.target.name}** "
+            f"at a projection ratio of **{proj_ratio:.4f}**."
         )
     else:
-        st.success(
-            f"✓ **HIT** — The CME flank intercepts **{config.target.name}** at a "
-            f"projection ratio of **{proj_ratio:.4f}** "
-            f"(v₀ = {derived.v_apex_kms * proj_ratio:.0f} km/s toward target)."
+        st.error(
+            f"**GEOMETRY: MISS** — The CME does not encompass **{config.target.name}** "
+            "with the current GCS parameters. Adjust longitude, latitude, or half-angle."
         )
 
     gcs_fig = build_gcs_figure(
-        alpha_deg=derived.alpha_deg,
-        kappa=derived.kappa,
-        lat_deg=derived.lat_deg,
-        lon_deg=derived.lon_deg,
-        tilt_deg=derived.tilt_deg,
+        alpha_deg=gcs_params.half_angle_deg,
+        kappa=gcs_params.kappa,
+        lat_deg=gcs_params.lat_deg,
+        lon_deg=gcs_params.lon_deg,
+        tilt_deg=gcs_params.tilt_deg,
         target_lat_deg=config.target.lat,
         target_lon_deg=config.target.lon,
         projection_ratio=proj_ratio,
         target_name=config.target.name,
+        height=1.0,
     )
     st.plotly_chart(gcs_fig, use_container_width=True)
+
+    # --------------------------------------------------------
+    # Height-Time Diagram — shown once ≥2 observations exist
+    # --------------------------------------------------------
+    st.divider()
+    st.subheader("Height-Time Diagram")
+
+    if not has_obs:
+        st.info(
+            "ℹ️ Add at least **2 observations** in the sidebar to compute "
+            "the H-T fit and apex velocity."
+        )
+    else:
+        derived: DerivedGCSParams = _cached_derived_params(clean_df, config.height_error)
+
+        ht_fig = build_ht_figure(
+            df=clean_df,
+            height_error=config.height_error,
+            slope=derived.fit_slope,
+            intercept=derived.fit_intercept,
+            chi_squared=derived.fit_chi_squared,
+            v_apex_kms=derived.v_apex_kms,
+            v_apex_error_kms=derived.v_apex_error_kms,
+        )
+        st.plotly_chart(ht_fig, use_container_width=True)
+
+        # Velocity result displayed prominently below the plot
+        v_col, proj_col, target_col, _ = st.columns([1, 1, 1, 1])
+        v_col.metric(
+            "Apex Velocity",
+            f"{derived.v_apex_kms:.0f} km/s",
+            delta=f"±{derived.v_apex_error_kms:.0f} km/s",
+            help="CME apex velocity from the weighted linear H-T fit.",
+        )
+        proj_col.metric(
+            "Projection Ratio",
+            f"{proj_ratio:.4f}" if target_hit_geometry else "—",
+            help="Fraction of apex height reached at the target latitude/longitude.",
+        )
+        target_col.metric(
+            "v₀ toward Target",
+            f"{derived.v_apex_kms * proj_ratio:.0f} km/s" if target_hit_geometry else "MISS",
+            help="Initial velocity component directed at the selected target.",
+        )
 
 
 # ============================================================
@@ -220,8 +212,8 @@ with tab2:
     # Trigger on button press
     # --------------------------------------------------------
     if run_clicked:
-        if len(clean_df) < 2:
-            st.warning("⚠️ Need at least 2 complete GCS rows.")
+        if clean_df is None:
+            st.warning("⚠️ Add at least 2 observations in the sidebar before running.")
         else:
             with st.spinner("Running DBM & MODBM simulations…"):
                 try:
@@ -345,3 +337,5 @@ with tab2:
                 st.markdown(f"- M (override) = {stored_config.m_override_g:.2e} g")
             else:
                 st.markdown("- M = Pluta (2018) formula")
+
+

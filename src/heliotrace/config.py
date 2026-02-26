@@ -25,6 +25,15 @@ TARGET_PRESETS: dict[str, dict[str, float] | None] = {
 # ---------------------------------------------------------------------------
 # Default GCS rows loaded into the data editor on first visit
 # ---------------------------------------------------------------------------
+
+# Compact observation rows for the sidebar table (time + height only)
+DEFAULT_OBS_ROWS: list[dict] = [
+    {"datetime": datetime(2023, 10, 28, 14, 0),  "height": 10.0},
+    {"datetime": datetime(2023, 10, 28, 14, 30), "height": 12.1},
+    {"datetime": datetime(2023, 10, 28, 15, 0),  "height": 14.0},
+]
+
+# Full 7-column rows (kept for tests and legacy compatibility)
 DEFAULT_GCS_ROWS: list[dict] = [
     {
         "datetime":   datetime(2023, 10, 28, 14, 0),

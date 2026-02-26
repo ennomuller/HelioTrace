@@ -9,7 +9,16 @@
 
 ## 📍 Current State (2026-02-26)
 
-**Housekeeping sprint complete.** Navigation uses `st.navigation()` (Streamlit ≥ 1.36);
+**UI Refactor sprint complete (GCS sidebar + reactive plots).** The five GCS geometric
+parameters now live as `st.number_input` fields in the sidebar (with tooltips and
+out-of-range validation). The observation data table is compact (datetime + height
+only) and also lives in the sidebar. Tab 1 of the main page is now fully reactive:
+the 3D GCS model renders automatically from the sidebar params (height=1, normalised),
+and the H-T diagram + velocity metric appear as soon as ≥2 observations are present.
+A new `GCSParams` dataclass cleanly separates the five geometric inputs from
+`SimulationConfig`. All 9 smoke tests still pass.
+
+**Previous: Housekeeping sprint complete.** Navigation uses `st.navigation()` (Streamlit ≥ 1.36);
 home page content lives in `pages/home.py`; `app.py` is a thin 25-line host. All
 "CME Explorer" internal name remnants replaced with "HelioTrace". `geometry.py`
 now credits `gcs_python` by name. 27 `__pycache__`/`egg-info` artefacts de-indexed
@@ -24,9 +33,9 @@ pages/
   01_CME_Propagation.py ← Propagation Simulator page (🚀 Propagation Simulator in nav)
 src/heliotrace/           ← installable package (pip install -e .)
   __init__.py             ← exposes __version__ = "0.1.0"
-  config.py               ← TARGET_PRESETS, DEFAULT_GCS_ROWS, session-state key constants
+  config.py               ← TARGET_PRESETS, DEFAULT_GCS_ROWS, DEFAULT_OBS_ROWS, session-state key constants
   models/
-    schemas.py            ← pure dataclasses: TargetConfig, SimulationConfig,
+    schemas.py            ← pure dataclasses: GCSParams, TargetConfig, SimulationConfig,
                              DerivedGCSParams, PropagationSeries, SimulationResults
   physics/
     geometry.py           ← GCS mesh maths (ported from IDL shellskeleton.pro / cmecloud.pro)
@@ -39,7 +48,8 @@ src/heliotrace/           ← installable package (pip install -e .)
     state.py              ← init_session_state() — Streamlit session state bootstrap
     utils.py              ← shared UI helpers (format_diff, etc.)
     components/
-      sidebar_inputs.py   ← renders full sidebar, returns (SimulationConfig, bool)
+      sidebar_inputs.py   ← renders full sidebar, returns (SimulationConfig, GCSParams, obs_df, bool)
+                             GCS params + Advanced expander (height error) + compact obs table
       ht_plot.py          ← Plotly Height-Time diagram
       gcs_plot.py         ← Plotly 3D GCS mesh (scipy.spatial.Delaunay, no matplotlib)
       propagation_plot.py ← two-panel DBM vs MODBM comparison chart
@@ -122,6 +132,19 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
 - [X] **H-T Plot**: Plotly scatter + linear fit + velocity annotation
 - [X] **KPI cards**: Transit time, impact speed, arrival time, ΔToA vs expected
 - [X] **Enterprise refactor**: `src/` layout, type hints, logging, tests scaffold, Docker, README
+- [X] **GCS UI Refactor (2026-02-26)**:
+  - `GCSParams` dataclass added to `models/schemas.py` (lon, lat, tilt, half_angle, kappa)
+  - `DEFAULT_OBS_ROWS` added to `config.py` (compact datetime + height only)
+  - Sidebar rebuilt: 5 GCS `st.number_input` fields with tooltips + out-of-range
+    `st.warning` feedback; height error moved into `st.expander("🔧 Advanced")`;
+    compact `st.data_editor` observation table (datetime + height columns only)
+  - `render_sidebar()` now returns `(SimulationConfig, GCSParams, obs_df, run_clicked)`
+  - Tab 1 (`01_CME_Propagation.py`) fully reactive — no button required:
+    - GCS 3D model always visible (height=1 normalised, projection ratio computed live)
+    - H-T diagram + `st.metric` velocity result shown when ≥2 obs rows populated
+    - `clean_df` assembled by broadcasting GCS params across obs rows (compatible with
+      existing `derive_gcs_params()` and `run_full_simulation()` signatures)
+  - Tab 2 propagation runner guarded against missing observations
 - [X] **Housekeeping sprint (2026-02-26)**:
   - `st.navigation()` host — page labels **🏠 Home** / **🚀 Propagation Simulator**
   - Home page content moved to `pages/home.py`; `app.py` is 25-line thin host

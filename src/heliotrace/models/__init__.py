@@ -1,6 +1,7 @@
 """Data models and session-state schemas for HelioTrace."""
 
 from heliotrace.models.schemas import (
+    GCSParams,
     TargetConfig,
     SimulationConfig,
     DerivedGCSParams,
@@ -9,6 +10,7 @@ from heliotrace.models.schemas import (
 )
 
 __all__ = [
+    "GCSParams",
     "TargetConfig",
     "SimulationConfig",
     "DerivedGCSParams",

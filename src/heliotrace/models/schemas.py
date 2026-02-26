@@ -28,6 +28,17 @@ class TargetConfig:
 
 
 @dataclass
+class GCSParams:
+    """The five fixed geometrical GCS parameters set once in the sidebar."""
+
+    lon_deg:        float   # Stonyhurst longitude [deg]  range: [-180, 180]
+    lat_deg:        float   # Stonyhurst latitude [deg]   range: [-90, 90]
+    tilt_deg:       float   # Flux-rope tilt [deg]        range: [-90, 90]
+    half_angle_deg: float   # GCS half-angle α [deg]      range: [0, 90]
+    kappa:          float   # Aspect ratio κ              range: [0.01, 0.99]
+
+
+@dataclass
 class SimulationConfig:
     """All user-controlled inputs for one simulation run."""
 
