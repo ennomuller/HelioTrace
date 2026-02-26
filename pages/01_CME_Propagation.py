@@ -24,7 +24,11 @@ from heliotrace.physics.apex_ratio import get_target_apex_ratio
 from heliotrace.simulation.runner import derive_gcs_params, run_full_simulation
 from heliotrace.ui.components.gcs_plot import build_gcs_figure
 from heliotrace.ui.components.ht_plot import build_ht_figure
-from heliotrace.ui.components.propagation_plot import build_propagation_comparison_figure
+from heliotrace.ui.components.propagation_plot import (
+    build_propagation_comparison_figure,
+    build_single_model_figure,
+    PLOT_COLORS,
+)
 from heliotrace.ui.components.sidebar_inputs import render_sidebar
 from heliotrace.ui.state import init_session_state
 from heliotrace.ui.utils import format_diff
@@ -255,9 +259,7 @@ with tab2:
     # --------------------------------------------------------
     # Summary KPI cards
     # --------------------------------------------------------
-    st.divider()
     st.subheader("Key Results")
-
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Apex Velocity",    f"{results.derived.v_apex_kms:.0f} km/s",
               delta=f"±{results.derived.v_apex_error_kms:.0f}")
@@ -266,76 +268,89 @@ with tab2:
     c4.metric("Target Distance",  f"{stored_config.target.distance:.3f} AU")
 
     # --------------------------------------------------------
-    # Model-by-model results (two columns)
+    # Side-by-side model results
     # --------------------------------------------------------
-    st.divider()
+    st.subheader("Model Results")
     col_dbm, col_modbm = st.columns(2)
 
     with col_dbm:
-        st.subheader("Drag-Based Model (DBM)")
+        st.markdown("### 🌬️ DBM")
         if results.arrival_time_DBM:
             d1, d2, d3 = st.columns(3)
-            d1.metric("Transit Time",  f"{results.elapsed_time_DBM_h:.2f} h")
-            d2.metric("Impact Speed",  f"{results.velocity_arrival_DBM_kms:.1f} km/s")
-            d3.metric("Arrival",       results.arrival_time_DBM.strftime("%d %b %H:%M UT"))
-
+            d1.metric("Transit", f"{results.elapsed_time_DBM_h:.1f} h")
+            d2.metric("Impact",  f"{results.velocity_arrival_DBM_kms:.0f} km/s")
+            d3.metric("Arrival", results.arrival_time_DBM.strftime("%d %b %H:%M UT"))
             diff_dbm = format_diff(results.arrival_time_DBM, toa_expected)
             if diff_dbm:
                 sign_color = "normal" if float(diff_dbm.split()[0]) >= 0 else "inverse"
                 st.metric("Δ vs Expected ToA", diff_dbm, delta_color=sign_color)
         else:
-            st.warning("DBM solution did not reach the target within the integration window.")
+            st.warning("DBM did not reach the target within the integration window.")
+
+        with st.expander("Inputs used — DBM", expanded=False):
+            d = results.derived
+            st.markdown(f"- r₀ = {d.r0_rsun:.2f} R☉  |  t₀ = {d.t0.strftime('%Y-%m-%d %H:%M UT')}")
+            st.markdown(f"- v_apex = {d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f} km/s")
+            st.markdown(f"- v₀ → {stored_config.target.name} = {results.v0_kms:.0f} km/s")
+            st.markdown(f"- α = {d.alpha_deg:.1f}°  |  κ = {d.kappa:.3f}")
+            st.markdown(f"- lon = {d.lon_deg:.1f}°  |  lat = {d.lat_deg:.1f}°  |  tilt = {d.tilt_deg:.1f}°")
+            st.markdown(f"- **w = {stored_config.w:.0f} km/s**  |  c_d = {stored_config.c_d}")
+
+        if results.dbm_series:
+            dbm_fig = build_single_model_figure(
+                series=results.dbm_series,
+                elapsed_h=results.elapsed_time_DBM_h,
+                target_distance_au=stored_config.target.distance,
+                label="DBM",
+                color=PLOT_COLORS["DBM"],
+            )
+            st.plotly_chart(dbm_fig, use_container_width=True)
 
     with col_modbm:
-        st.subheader("Modified DBM (MODBM)")
+        st.markdown("### 🔬 MODBM")
         if results.arrival_time_MODBM:
             d1, d2, d3 = st.columns(3)
-            d1.metric("Transit Time",  f"{results.elapsed_time_MODBM_h:.2f} h")
-            d2.metric("Impact Speed",  f"{results.velocity_arrival_MODBM_kms:.1f} km/s")
-            d3.metric("Arrival",       results.arrival_time_MODBM.strftime("%d %b %H:%M UT"))
-
+            d1.metric("Transit", f"{results.elapsed_time_MODBM_h:.1f} h")
+            d2.metric("Impact",  f"{results.velocity_arrival_MODBM_kms:.0f} km/s")
+            d3.metric("Arrival", results.arrival_time_MODBM.strftime("%d %b %H:%M UT"))
             diff_modbm = format_diff(results.arrival_time_MODBM, toa_expected)
             if diff_modbm:
                 sign_color = "normal" if float(diff_modbm.split()[0]) >= 0 else "inverse"
                 st.metric("Δ vs Expected ToA", diff_modbm, delta_color=sign_color)
         else:
-            st.warning("MODBM solution did not reach the target within the integration window.")
+            st.warning("MODBM did not reach the target within the integration window.")
+
+        with st.expander("Inputs used — MODBM", expanded=False):
+            d = results.derived
+            st.markdown(f"- r₀ = {d.r0_rsun:.2f} R☉  |  t₀ = {d.t0.strftime('%Y-%m-%d %H:%M UT')}")
+            st.markdown(f"- v_apex = {d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f} km/s")
+            st.markdown(f"- v₀ → {stored_config.target.name} = {results.v0_kms:.0f} km/s")
+            st.markdown(f"- α = {d.alpha_deg:.1f}°  |  κ = {d.kappa:.3f}")
+            st.markdown(f"- lon = {d.lon_deg:.1f}°  |  lat = {d.lat_deg:.1f}°  |  tilt = {d.tilt_deg:.1f}°")
+            _mass = f"{stored_config.m_override_g:.2e} g" if stored_config.m_override_g else "Pluta (2018)"
+            st.markdown(f"- **w_type = {stored_config.w_type}**  |  SSN = {stored_config.ssn:.0f}")
+            st.markdown(f"- c_d = {stored_config.c_d}  |  mass = {_mass}")
+
+        if results.modbm_series:
+            modbm_fig = build_single_model_figure(
+                series=results.modbm_series,
+                elapsed_h=results.elapsed_time_MODBM_h,
+                target_distance_au=stored_config.target.distance,
+                label="MODBM",
+                color=PLOT_COLORS["MODBM"],
+            )
+            st.plotly_chart(modbm_fig, use_container_width=True)
 
     # --------------------------------------------------------
-    # Propagation comparison chart
+    # Full-width combined comparison
     # --------------------------------------------------------
     if results.dbm_series or results.modbm_series:
         st.divider()
-        st.subheader("Model Comparison")
+        st.subheader("Combined Comparison")
         prop_fig = build_propagation_comparison_figure(
             results=results,
             target_distance_au=stored_config.target.distance,
         )
         st.plotly_chart(prop_fig, use_container_width=True)
-
-    # --------------------------------------------------------
-    # Input parameters summary (collapsible)
-    # --------------------------------------------------------
-    st.divider()
-    with st.expander("📋 Simulation Parameters Used", expanded=False):
-        d = results.derived
-        col_a, col_b = st.columns(2)
-        with col_a:
-            st.markdown("**Initial Conditions (from GCS fit)**")
-            st.markdown(f"- r₀ = {d.r0_rsun:.2f} R☉")
-            st.markdown(f"- t₀ = {d.t0.strftime('%Y-%m-%d %H:%M UT')}")
-            st.markdown(f"- v_apex = {d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f} km/s")
-            st.markdown(f"- α = {d.alpha_deg:.1f}°,  κ = {d.kappa:.3f}")
-            st.markdown(f"- lon = {d.lon_deg:.1f}°,  lat = {d.lat_deg:.1f}°,  tilt = {d.tilt_deg:.1f}°")
-        with col_b:
-            st.markdown("**Drag Model Settings**")
-            st.markdown(f"- w (DBM) = {stored_config.w} km/s")
-            st.markdown(f"- w_type (MODBM) = {stored_config.w_type}")
-            st.markdown(f"- SSN = {stored_config.ssn}")
-            st.markdown(f"- c_d = {stored_config.c_d}")
-            if stored_config.m_override_g:
-                st.markdown(f"- M (override) = {stored_config.m_override_g:.2e} g")
-            else:
-                st.markdown("- M = Pluta (2018) formula")
 
 

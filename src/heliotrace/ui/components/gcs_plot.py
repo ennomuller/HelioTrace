@@ -138,15 +138,19 @@ def build_gcs_figure(
 
     fig.update_layout(
         scene=dict(
-            xaxis=dict(title="X", range=[-1.1, 1.1], showgrid=True, gridcolor="#ddd"),
-            yaxis=dict(title="Y", range=[-1.1, 1.1], showgrid=True, gridcolor="#ddd"),
-            zaxis=dict(title=f"Z → {target_name}", range=[0, 1.1], showgrid=True, gridcolor="#ddd"),
+            xaxis=dict(title="X", range=[-1.1, 1.1], showgrid=True, gridcolor="#ddd",
+                       title_font=dict(size=13), tickfont=dict(size=11)),
+            yaxis=dict(title="Y", range=[-1.1, 1.1], showgrid=True, gridcolor="#ddd",
+                       title_font=dict(size=13), tickfont=dict(size=11)),
+            zaxis=dict(title=f"Z \u2192 {target_name}", range=[0, 1.1], showgrid=True, gridcolor="#ddd",
+                       title_font=dict(size=13), tickfont=dict(size=11)),
             aspectmode="manual",
             aspectratio=dict(x=1, y=1, z=0.5),
             camera=dict(eye=dict(x=1.4, y=1.4, z=0.7)),
         ),
         margin=dict(t=10, b=10, l=0, r=0),
-        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)", bordercolor="#ccc", borderwidth=1),
+        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)", bordercolor="#ccc", borderwidth=1,
+                    font=dict(size=13)),
     )
 
     return fig

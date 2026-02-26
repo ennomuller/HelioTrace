@@ -9,9 +9,12 @@
 
 ## 📍 Current State (2026-02-26)
 
-**UI Refactor sprint complete (GCS sidebar + reactive plots).** The five GCS geometric
-parameters now live as `st.number_input` fields in the sidebar (with tooltips and
-out-of-range validation). The observation data table is compact (datetime + height
+**UI/UX polish sprint complete.** Major improvements to sidebar compactness, results
+presentation, and plot readability.  All 9 smoke tests still pass.
+
+**Previous: UI Refactor sprint complete (GCS sidebar + reactive plots).** The five GCS
+geometric parameters now live as `st.number_input` fields in the sidebar (with tooltips
+and out-of-range validation). The observation data table is compact (datetime + height
 only) and also lives in the sidebar. Tab 1 of the main page is now fully reactive:
 the 3D GCS model renders automatically from the sidebar params (height=1, normalised),
 and the H-T diagram + velocity metric appear as soon as ≥2 observations are present.
@@ -132,6 +135,35 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
 - [X] **H-T Plot**: Plotly scatter + linear fit + velocity annotation
 - [X] **KPI cards**: Transit time, impact speed, arrival time, ΔToA vs expected
 - [X] **Enterprise refactor**: `src/` layout, type hints, logging, tests scaffold, Docker, README
+- [X] **UI/UX Polish Sprint (2026-02-26)**:
+  - **"Fill with example" button** — primary-styled button at top of sidebar; writes the
+    2023-10-28 Halloween CME event into all `sb_*` session-state keys and increments
+    `sb_editor_counter` to reinitialise the observation data editor from `DEFAULT_OBS_ROWS`.
+    By default the sidebar fields are empty / neutral so the app opens clean.
+  - **Drag param grouping** — section split into three labelled blocks using `st.caption`:
+    *Shared*, *DBM only*, *MODBM only*; c_d is listed first (shared), then w slider, then
+    w_type radio + SSN slider.
+  - **SSN slider** — step changed from 5 → 1.
+  - **Compact sidebar** — `st.header` → `st.subheader` throughout; most inter-section
+    `st.divider()` calls removed (only one remains before the Run button); GCS lon/lat/tilt
+    packed into a 3-column row, half-angle + κ into a 2-column row; height error moved out
+    of the Advanced expander into the main GCS section; `st.info` on obs count → lighter
+    `st.caption`; dead duplicate function body removed from `sidebar_inputs.py`.
+  - **Keyed widgets** — every widget now carries a `key="sb_*"` so the fill-example button
+    can target them via session state; observation table uses a dynamic `f"obs_editor_{counter}"`
+    key to support forced reinitialisation.
+  - **Results rework (Tab 2)** — side-by-side `st.columns(2)` layout (DBM | MODBM):
+    - Compact metric row (Transit / Impact / Arrival) + optional ΔToA metric per model.
+    - Collapsed `st.expander("Inputs used — {model}")` listing all relevant parameters.
+    - Per-model dual-y-axis Plotly figure (`build_single_model_figure` in
+      `propagation_plot.py`): distance [R☉] on left axis, velocity [km/s] on right,
+      arrival vline + target hline annotations.
+    - Full-width combined comparison chart below the columns; legend repositioned to
+      horizontal centre-bottom (`x=0.5, orientation="h"`) so labels for both models are
+      equidistant from each panel.
+  - **Font sizes** — axis titles, tick labels, annotations, and legend text increased by
+    1–2 pt across `ht_plot.py`, `gcs_plot.py`, and `propagation_plot.py`.
+  - `PLOT_COLORS` public alias exported from `propagation_plot.py` for use in page modules.
 - [X] **GCS UI Refactor (2026-02-26)**:
   - `GCSParams` dataclass added to `models/schemas.py` (lon, lat, tilt, half_angle, kappa)
   - `DEFAULT_OBS_ROWS` added to `config.py` (compact datetime + height only)

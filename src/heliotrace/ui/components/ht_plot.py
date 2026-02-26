@@ -72,19 +72,23 @@ def build_ht_figure(
         x=0.98, y=0.06,
         showarrow=False, align="right",
         bgcolor="white", bordercolor="#888", borderwidth=1,
-        font=dict(size=13, color="#1D3557"),
+        font=dict(size=15, color="#1D3557"),
     )
 
     fig.update_layout(
         xaxis_title="Date & Time [UT]",
         yaxis_title="CME Front Height [R☉]",
-        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)", bordercolor="#ccc", borderwidth=1),
+        xaxis_title_font=dict(size=14),
+        yaxis_title_font=dict(size=14),
+        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)", bordercolor="#ccc", borderwidth=1,
+                    font=dict(size=13)),
         hovermode="x unified",
         margin=dict(t=30, b=60, l=60, r=20),
         plot_bgcolor="white",
         paper_bgcolor="white",
     )
-    fig.update_xaxes(showgrid=True, gridcolor="#eee", tickformat="%d-%m\n%H:%M")
-    fig.update_yaxes(showgrid=True, gridcolor="#eee")
+    fig.update_xaxes(showgrid=True, gridcolor="#eee", tickformat="%d-%m\n%H:%M",
+                     tickfont=dict(size=12))
+    fig.update_yaxes(showgrid=True, gridcolor="#eee", tickfont=dict(size=12))
 
     return fig
