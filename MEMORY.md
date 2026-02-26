@@ -9,7 +9,10 @@
 
 ## 📍 Current State (2026-02-26)
 
-**UI/UX polish sprint complete.** Major improvements to sidebar compactness, results
+**UI/UX refinements sprint complete.** Plotting, sidebar, and page-structure polish
+pass applied on top of the previous UI/UX polish sprint.  All 9 smoke tests still pass.
+
+**Previous: UI/UX polish sprint complete.** Major improvements to sidebar compactness, results
 presentation, and plot readability.  All 9 smoke tests still pass.
 
 **Previous: UI Refactor sprint complete (GCS sidebar + reactive plots).** The five GCS
@@ -33,7 +36,7 @@ from git. All 9 smoke tests pass.
 app.py                   ← thin entry point: st.set_page_config + st.navigation().run()
 pages/
   home.py               ← Home page content (🏠 Home in nav)
-  01_CME_Propagation.py ← Propagation Simulator page (🚀 Propagation Simulator in nav)
+  01_Propagation_Simulator.py ← Propagation Simulator page (🚀 Propagation Simulator in nav)
 src/heliotrace/           ← installable package (pip install -e .)
   __init__.py             ← exposes __version__ = "0.1.0"
   config.py               ← TARGET_PRESETS, DEFAULT_GCS_ROWS, DEFAULT_OBS_ROWS, session-state key constants
@@ -51,14 +54,18 @@ src/heliotrace/           ← installable package (pip install -e .)
     state.py              ← init_session_state() — Streamlit session state bootstrap
     utils.py              ← shared UI helpers (format_diff, etc.)
     components/
-      sidebar_inputs.py   ← renders full sidebar, returns (SimulationConfig, GCSParams, obs_df, bool)
-                             GCS params + Advanced expander (height error) + compact obs table
+      sidebar_inputs.py   ← renders full sidebar, returns (SimulationConfig, GCSParams, obs_df, run_clicked, gcs_params_entered)
+                             GCS params (value=None/empty by default; placeholders show valid ranges)
+                             + Advanced expander (height error) + compact obs table
+                             Emojis: 🐚 GCS Parameters, 🪂 Drag Parameters
+                             Section dividers: st.divider() before each of the 5 main subheaders
+                             "Shared"/"DBM only"/"MODBM only" labels use st.markdown (black, not grey)
       ht_plot.py          ← Plotly Height-Time diagram
       gcs_plot.py         ← Plotly 3D GCS mesh (scipy.spatial.Delaunay, no matplotlib)
       propagation_plot.py ← two-panel DBM vs MODBM comparison chart
 app.py                    ← clean entry point (no sys.path hacks)
 pages/
-  01_CME_Propagation.py   ← main simulation page
+  01_Propagation_Simulator.py ← main simulation page (renamed from 01_CME_Propagation.py)
 tests/
   test_smoke.py           ← 9 smoke tests (imports, physics unit, full integration)
 pyproject.toml            ← single source of truth for deps + build
@@ -164,6 +171,20 @@ simulation can be re-used from a CLI or notebook without importing any UI code.
   - **Font sizes** — axis titles, tick labels, annotations, and legend text increased by
     1–2 pt across `ht_plot.py`, `gcs_plot.py`, and `propagation_plot.py`.
   - `PLOT_COLORS` public alias exported from `propagation_plot.py` for use in page modules.
+- [X] **UI/UX Refinements Sprint (2026-02-26)**:
+  - **Page renamed**: `01_CME_Propagation.py` → `01_Propagation_Simulator.py` (nav title already matched); `app.py` path updated.
+  - **GCS empty-state**: all five GCS `st.number_input` fields now use `value=None` and `placeholder` text showing the valid range; before any value is entered the 3D plot section shows an `st.info` hint instead; `proj_ratio` / `target_hit_geometry` default to 0 / False so the H-T metrics section still renders correctly; `render_sidebar()` returns a 5-tuple with a new `gcs_params_entered: bool`.
+  - **Sidebar emojis**: 🔭 → 🐚 (GCS Parameters), 🌬️ → 🪂 (Drag Parameters).
+  - **Sidebar spacing**: `st.divider()` added before each of the 5 major subheaders (Event Info, Target, GCS Parameters, Observations, Drag Parameters) plus the existing one above the Run button.
+  - **Section-label typography**: "Shared — DBM & MODBM", "DBM only", "MODBM only" changed from `st.caption` (grey) to `st.markdown` (black); descriptive captions below subheaders remain as-is.
+  - **Inputs-used expanders**: removed `**bold**` from `w` and `w_type` lines only; all other variables unchanged.
+  - **Single-model H-T/V-T plots** (`build_single_model_figure`):
+    - Legend enabled (`showlegend=True`) with descriptive trace labels `"Distance [R☉] (label)"` / `"Velocity [km/s] (label)"`.
+    - Target hline annotation moved to top-center: added as a separate `fig.add_annotation(xref="paper", x=0.5, xanchor="center", yanchor="bottom")` instead of the inline `annotation_position="bottom right"`.
+    - Arrival vline colour changed from model colour to `#9B59B6` (purple — `_COLORS["arrival"]`), and `annotation_yshift=8` applied to nudge label slightly higher.
+  - **Comparison plot** (`build_propagation_comparison_figure`):
+    - Arrival vlines extracted from `_add_model` inner function; added separately after both models so earlier-arriving model gets `"top left"` annotation, later-arriving gets `"top right"` (no overlap); vlines now appear in **both** panels (col 1 unannotated, col 2 annotated).
+    - Target hline annotation replaced with a separate `fig.add_annotation(xref="paper", x=0.225)` centred over col 1 (left subplot).
 - [X] **GCS UI Refactor (2026-02-26)**:
   - `GCSParams` dataclass added to `models/schemas.py` (lon, lat, tilt, half_angle, kappa)
   - `DEFAULT_OBS_ROWS` added to `config.py` (compact datetime + height only)

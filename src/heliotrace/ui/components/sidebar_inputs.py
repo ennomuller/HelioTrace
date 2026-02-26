@@ -50,19 +50,20 @@ def _fill_example() -> None:
     st.rerun()
 
 
-def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
+def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, bool]:
     """
-    Render the full sidebar and return ``(config, gcs_params, obs_df, run_clicked)``.
+    Render the full sidebar and return ``(config, gcs_params, obs_df, run_clicked, gcs_params_entered)``.
 
-    - ``config``      — :class:`~heliotrace.models.schemas.SimulationConfig` with
-                        every widget value.
-    - ``gcs_params``  — :class:`~heliotrace.models.schemas.GCSParams` with the five
-                        fixed geometrical GCS inputs.
-    - ``obs_df``      — :class:`~pandas.DataFrame` with columns ``datetime`` and
-                        ``height`` from the compact observation table.
-    - ``run_clicked`` — ``True`` only on the frame the user pressed **▶ Run**.
+    - ``config``             — :class:`~heliotrace.models.schemas.SimulationConfig` with
+                               every widget value.
+    - ``gcs_params``         — :class:`~heliotrace.models.schemas.GCSParams` with the five
+                               fixed geometrical GCS inputs.
+    - ``obs_df``             — :class:`~pandas.DataFrame` with columns ``datetime`` and
+                               ``height`` from the compact observation table.
+    - ``run_clicked``        — ``True`` only on the frame the user pressed **\u25b6 Run**.
+    - ``gcs_params_entered`` — ``True`` when all five GCS geometry fields have a value.
 
-    :return: ``(SimulationConfig, GCSParams, pd.DataFrame, bool)``
+    :return: ``(SimulationConfig, GCSParams, pd.DataFrame, bool, bool)``
     """
     with st.sidebar:
         st.title("⚙️ Configuration")
@@ -76,6 +77,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
         ):
             _fill_example()
 
+        st.divider()
         # ------------------------------------------------------------------ #
         # 1. Event Information
         # ------------------------------------------------------------------ #
@@ -95,6 +97,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
                 st.warning("Invalid date format — expected YYYYMMDD.")
             cme_launch_day = datetime(2023, 10, 28)
 
+        st.divider()
         # ------------------------------------------------------------------ #
         # 2. Target Configuration
         # ------------------------------------------------------------------ #
@@ -133,29 +136,33 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
             distance=float(target_dist),
         )
 
+        st.divider()
         # ------------------------------------------------------------------ #
         # 3. GCS Geometrical Parameters
         # ------------------------------------------------------------------ #
-        st.subheader("🔭 GCS Parameters")
+        st.subheader("🐚 GCS Parameters")
 
         c_lon, c_lat, c_tilt = st.columns(3)
         gcs_lon = c_lon.number_input(
             "Lon [deg]",
-            value=0.0,
+            value=None,
+            placeholder="-180 – 180",
             min_value=-180.0, max_value=180.0, step=0.5, format="%.1f",
             key="sb_gcs_lon",
             help="Stonyhurst heliographic longitude of the CME source region [deg].",
         )
         gcs_lat = c_lat.number_input(
             "Lat [deg]",
-            value=0.0,
+            value=None,
+            placeholder="-90 – 90",
             min_value=-90.0, max_value=90.0, step=0.5, format="%.1f",
             key="sb_gcs_lat",
             help="Stonyhurst heliographic latitude of the CME source [deg].",
         )
         gcs_tilt = c_tilt.number_input(
             "Tilt [deg]",
-            value=0.0,
+            value=None,
+            placeholder="-90 – 90",
             min_value=-90.0, max_value=90.0, step=0.5, format="%.1f",
             key="sb_gcs_tilt",
             help="Tilt of the CME flux-rope axis relative to the solar equatorial plane [deg].",
@@ -164,14 +171,16 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
         c_ha, c_kp = st.columns(2)
         gcs_half_angle = c_ha.number_input(
             "Half-angle α [deg]",
-            value=20.0,
+            value=None,
+            placeholder="0.1 – 89.9 (typ. 15–45)",
             min_value=0.1, max_value=89.9, step=0.5, format="%.1f",
             key="sb_gcs_half_angle",
             help="GCS half-angle α: angular half-width of the CME shell [deg]. Typical: 15–45°.",
         )
         gcs_kappa = c_kp.number_input(
             "Aspect ratio κ",
-            value=0.4,
+            value=None,
+            placeholder="0.01 – 0.99 (typ. 0.2–0.6)",
             min_value=0.01, max_value=0.99, step=0.01, format="%.2f",
             key="sb_gcs_kappa",
             help="GCS aspect ratio κ: cross-section radius / apex distance. Typical: 0.2–0.6.",
@@ -189,6 +198,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
             help="Symmetric ±uncertainty applied to every height measurement [R☉].",
         )
 
+        st.divider()
         # ------------------------------------------------------------------ #
         # 4. Observation Table
         # ------------------------------------------------------------------ #
@@ -230,12 +240,13 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
         else:
             st.caption(f"✓ {valid_obs} valid observations.")
 
+        st.divider()
         # ------------------------------------------------------------------ #
         # 5. Drag Model Parameters
         # ------------------------------------------------------------------ #
-        st.subheader("🌬️ Drag Parameters")
+        st.subheader("🪂 Drag Parameters")
 
-        st.caption("**Shared — DBM & MODBM**")
+        st.markdown("**Shared — DBM & MODBM**")
         c_d = st.number_input(
             "Drag coefficient c_d",
             value=1.0,
@@ -244,7 +255,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
             help="Dimensionless drag coefficient (converges to ~1 beyond ~12 R☉, Cargill 2004).",
         )
 
-        st.caption("**DBM only**")
+        st.markdown("**DBM only**")
         w = st.slider(
             "Solar wind speed w [km/s]",
             min_value=250, max_value=700, value=390,
@@ -253,7 +264,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
             help="Constant ambient solar wind speed used by the standard DBM.",
         )
 
-        st.caption("**MODBM only**")
+        st.markdown("**MODBM only**")
         w_type = st.radio(
             "Solar wind regime",
             options=["slow", "fast"],
@@ -321,12 +332,15 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool]:
         m_override_g=m_override_g,
     )
 
+    gcs_params_entered: bool = all(
+        v is not None for v in [gcs_lon, gcs_lat, gcs_tilt, gcs_half_angle, gcs_kappa]
+    )
     gcs_params = GCSParams(
-        lon_deg=float(gcs_lon or 0.0),
-        lat_deg=float(gcs_lat or 0.0),
-        tilt_deg=float(gcs_tilt or 0.0),
-        half_angle_deg=float(gcs_half_angle or 20.0),
-        kappa=float(gcs_kappa or 0.4),
+        lon_deg=float(gcs_lon) if gcs_lon is not None else 0.0,
+        lat_deg=float(gcs_lat) if gcs_lat is not None else 0.0,
+        tilt_deg=float(gcs_tilt) if gcs_tilt is not None else 0.0,
+        half_angle_deg=float(gcs_half_angle) if gcs_half_angle is not None else 20.0,
+        kappa=float(gcs_kappa) if gcs_kappa is not None else 0.4,
     )
 
-    return config, gcs_params, obs_df, run_clicked
+    return config, gcs_params, obs_df, run_clicked, gcs_params_entered

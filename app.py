@@ -19,7 +19,7 @@ st.set_page_config(
 pg = st.navigation(
     [
         st.Page("pages/home.py", title="🏠 Home"),
-        st.Page("pages/01_CME_Propagation.py", title="🚀 Propagation Simulator"),
+        st.Page("pages/01_Propagation_Simulator.py", title="🚀 Propagation Simulator"),
     ]
 )
 pg.run()

@@ -69,12 +69,12 @@ def _cached_projection_ratio(
 # Initialise session state + render sidebar
 # ---------------------------------------------------------------------------
 init_session_state()
-config, gcs_params, obs_df, run_clicked = render_sidebar()
+config, gcs_params, obs_df, run_clicked, gcs_params_entered = render_sidebar()
 
 # ---------------------------------------------------------------------------
 # Page header
 # ---------------------------------------------------------------------------
-st.title("🚀 CME Propagation Modelling")
+st.title("🚀 Propagation Simulator")
 st.caption(
     f"Event: **{config.event_str}** | "
     f"Target: **{config.target.name}** ({config.target.distance:.2f} AU) | "
@@ -115,47 +115,57 @@ tab1, tab2 = st.tabs(["📡 GCS Geometry & Height-Time", "📈 Propagation Resul
 with tab1:
 
     # --------------------------------------------------------
-    # GCS 3D Model — always shown using sidebar GCS params
+    # GCS 3D Model — shown once all five GCS params are entered
     # --------------------------------------------------------
     st.subheader("GCS Model (3D Geometry)")
 
-    with st.spinner("Computing GCS geometry…  (cached after first run)"):
-        proj_ratio = _cached_projection_ratio(
+    # Defaults used when GCS params are not yet entered
+    proj_ratio          = 0.0
+    target_hit_geometry = False
+
+    if not gcs_params_entered:
+        st.info(
+            "ℹ️ Enter all five **GCS parameters** in the sidebar — or press "
+            "**⚡ Fill with example** — to view the 3D geometry."
+        )
+    else:
+        with st.spinner("Computing GCS geometry…  (cached after first run)"):
+            proj_ratio = _cached_projection_ratio(
+                alpha_deg=gcs_params.half_angle_deg,
+                kappa=gcs_params.kappa,
+                cme_lat_deg=gcs_params.lat_deg,
+                cme_lon_deg=gcs_params.lon_deg,
+                tilt_deg=gcs_params.tilt_deg,
+                target_lat_deg=config.target.lat,
+                target_lon_deg=config.target.lon,
+            )
+
+        target_hit_geometry = proj_ratio > 0
+
+        if target_hit_geometry:
+            st.success(
+                f"✓ **HIT** — The CME flank intercepts **{config.target.name}** "
+                f"at a projection ratio of **{proj_ratio:.4f}**."
+            )
+        else:
+            st.error(
+                f"**GEOMETRY: MISS** — The CME does not encompass **{config.target.name}** "
+                "with the current GCS parameters. Adjust longitude, latitude, or half-angle."
+            )
+
+        gcs_fig = build_gcs_figure(
             alpha_deg=gcs_params.half_angle_deg,
             kappa=gcs_params.kappa,
-            cme_lat_deg=gcs_params.lat_deg,
-            cme_lon_deg=gcs_params.lon_deg,
+            lat_deg=gcs_params.lat_deg,
+            lon_deg=gcs_params.lon_deg,
             tilt_deg=gcs_params.tilt_deg,
             target_lat_deg=config.target.lat,
             target_lon_deg=config.target.lon,
+            projection_ratio=proj_ratio,
+            target_name=config.target.name,
+            height=1.0,
         )
-
-    target_hit_geometry = proj_ratio > 0
-
-    if target_hit_geometry:
-        st.success(
-            f"✓ **HIT** — The CME flank intercepts **{config.target.name}** "
-            f"at a projection ratio of **{proj_ratio:.4f}**."
-        )
-    else:
-        st.error(
-            f"**GEOMETRY: MISS** — The CME does not encompass **{config.target.name}** "
-            "with the current GCS parameters. Adjust longitude, latitude, or half-angle."
-        )
-
-    gcs_fig = build_gcs_figure(
-        alpha_deg=gcs_params.half_angle_deg,
-        kappa=gcs_params.kappa,
-        lat_deg=gcs_params.lat_deg,
-        lon_deg=gcs_params.lon_deg,
-        tilt_deg=gcs_params.tilt_deg,
-        target_lat_deg=config.target.lat,
-        target_lon_deg=config.target.lon,
-        projection_ratio=proj_ratio,
-        target_name=config.target.name,
-        height=1.0,
-    )
-    st.plotly_chart(gcs_fig, use_container_width=True)
+        st.plotly_chart(gcs_fig, use_container_width=True)
 
     # --------------------------------------------------------
     # Height-Time Diagram — shown once ≥2 observations exist
@@ -294,7 +304,7 @@ with tab2:
             st.markdown(f"- v₀ → {stored_config.target.name} = {results.v0_kms:.0f} km/s")
             st.markdown(f"- α = {d.alpha_deg:.1f}°  |  κ = {d.kappa:.3f}")
             st.markdown(f"- lon = {d.lon_deg:.1f}°  |  lat = {d.lat_deg:.1f}°  |  tilt = {d.tilt_deg:.1f}°")
-            st.markdown(f"- **w = {stored_config.w:.0f} km/s**  |  c_d = {stored_config.c_d}")
+            st.markdown(f"- w = {stored_config.w:.0f} km/s  |  c_d = {stored_config.c_d}")
 
         if results.dbm_series:
             dbm_fig = build_single_model_figure(
@@ -328,7 +338,7 @@ with tab2:
             st.markdown(f"- α = {d.alpha_deg:.1f}°  |  κ = {d.kappa:.3f}")
             st.markdown(f"- lon = {d.lon_deg:.1f}°  |  lat = {d.lat_deg:.1f}°  |  tilt = {d.tilt_deg:.1f}°")
             _mass = f"{stored_config.m_override_g:.2e} g" if stored_config.m_override_g else "Pluta (2018)"
-            st.markdown(f"- **w_type = {stored_config.w_type}**  |  SSN = {stored_config.ssn:.0f}")
+            st.markdown(f"- w_type = {stored_config.w_type}  |  SSN = {stored_config.ssn:.0f}")
             st.markdown(f"- c_d = {stored_config.c_d}  |  mass = {_mass}")
 
         if results.modbm_series:
