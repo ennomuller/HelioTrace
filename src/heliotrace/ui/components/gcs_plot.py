@@ -6,6 +6,7 @@ interactive Plotly 3D figure.
 
 Note: triangulation uses ``scipy.spatial.Delaunay`` — no matplotlib dependency.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -47,10 +48,10 @@ def build_gcs_figure(
     :param res:              Mesh resolution (rings per dimension).
     :return: Plotly :class:`~plotly.graph_objects.Figure`.
     """
-    rel_lon   = float((lon_deg   - target_lon_deg) * np.pi / 180.0)
-    rel_lat   = float((lat_deg   - target_lat_deg) * np.pi / 180.0)
-    alpha_rad = float(alpha_deg  * np.pi / 180.0)
-    tilt_rad  = float(tilt_deg   * np.pi / 180.0)
+    rel_lon = float((lon_deg - target_lon_deg) * np.pi / 180.0)
+    rel_lat = float((lat_deg - target_lat_deg) * np.pi / 180.0)
+    alpha_rad = float(alpha_deg * np.pi / 180.0)
+    tilt_rad = float(tilt_deg * np.pi / 180.0)
 
     mesh, uu, vv = gcs_mesh_rotated(
         alpha_rad, height, res, res, res, kappa, rel_lat, rel_lon, tilt_rad
@@ -92,7 +93,9 @@ def build_gcs_figure(
 
     fig.add_trace(
         go.Scatter3d(
-            x=edge_x, y=edge_y, z=edge_z,
+            x=edge_x,
+            y=edge_y,
+            z=edge_z,
             mode="lines",
             line=dict(color="#1D3557", width=0.5),
             name="GCS wireframe",
@@ -104,7 +107,9 @@ def build_gcs_figure(
     if projection_ratio > 0:
         fig.add_trace(
             go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, projection_ratio],
+                x=[0, 0],
+                y=[0, 0],
+                z=[0, projection_ratio],
                 mode="lines",
                 line=dict(color="#A8DADC", width=4),
                 name=f"Sun → {target_name} (inside CME)",
@@ -112,7 +117,9 @@ def build_gcs_figure(
         )
         fig.add_trace(
             go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[projection_ratio, 1.0],
+                x=[0, 0],
+                y=[0, 0],
+                z=[projection_ratio, 1.0],
                 mode="lines",
                 line=dict(color="#E63946", width=4),
                 name=f"Sun → {target_name} (outside CME)",
@@ -120,7 +127,9 @@ def build_gcs_figure(
         )
         fig.add_trace(
             go.Scatter3d(
-                x=[0], y=[0], z=[projection_ratio],
+                x=[0],
+                y=[0],
+                z=[projection_ratio],
                 mode="markers",
                 marker=dict(color="#E63946", size=8, symbol="circle"),
                 name=f"Projection point ({target_name}): {projection_ratio:.4f}",
@@ -129,7 +138,9 @@ def build_gcs_figure(
     else:
         fig.add_trace(
             go.Scatter3d(
-                x=[0, 0], y=[0, 0], z=[0, 1.0],
+                x=[0, 0],
+                y=[0, 0],
+                z=[0, 1.0],
                 mode="lines",
                 line=dict(color="#aaa", width=3, dash="dash"),
                 name=f"{target_name} direction (MISS)",
@@ -138,19 +149,43 @@ def build_gcs_figure(
 
     fig.update_layout(
         scene=dict(
-            xaxis=dict(title="X", range=[-1.1, 1.1], showgrid=True, gridcolor="#ddd",
-                       title_font=dict(size=13), tickfont=dict(size=11)),
-            yaxis=dict(title="Y", range=[-1.1, 1.1], showgrid=True, gridcolor="#ddd",
-                       title_font=dict(size=13), tickfont=dict(size=11)),
-            zaxis=dict(title=f"Z \u2192 {target_name}", range=[0, 1.1], showgrid=True, gridcolor="#ddd",
-                       title_font=dict(size=13), tickfont=dict(size=11)),
+            xaxis=dict(
+                title="X",
+                range=[-1.1, 1.1],
+                showgrid=True,
+                gridcolor="#ddd",
+                title_font=dict(size=13),
+                tickfont=dict(size=11),
+            ),
+            yaxis=dict(
+                title="Y",
+                range=[-1.1, 1.1],
+                showgrid=True,
+                gridcolor="#ddd",
+                title_font=dict(size=13),
+                tickfont=dict(size=11),
+            ),
+            zaxis=dict(
+                title=f"Z \u2192 {target_name}",
+                range=[0, 1.1],
+                showgrid=True,
+                gridcolor="#ddd",
+                title_font=dict(size=13),
+                tickfont=dict(size=11),
+            ),
             aspectmode="manual",
             aspectratio=dict(x=1, y=1, z=0.5),
             camera=dict(eye=dict(x=1.4, y=1.4, z=0.7)),
         ),
         margin=dict(t=10, b=10, l=0, r=0),
-        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)", bordercolor="#ccc", borderwidth=1,
-                    font=dict(size=13)),
+        legend=dict(
+            x=0.01,
+            y=0.99,
+            bgcolor="rgba(255,255,255,0.8)",
+            bordercolor="#ccc",
+            borderwidth=1,
+            font=dict(size=13),
+        ),
     )
 
     return fig

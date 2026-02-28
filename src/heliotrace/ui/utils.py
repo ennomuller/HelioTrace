@@ -1,6 +1,7 @@
 """
 Shared UI utility helpers used across Streamlit pages and components.
 """
+
 from __future__ import annotations
 
 from datetime import datetime

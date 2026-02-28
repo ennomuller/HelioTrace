@@ -6,6 +6,7 @@ Reference (from MEMORY.md):
     Apex velocity ≈ 773 km/s
     DBM transit time ≈ 69.4 h
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -16,10 +17,10 @@ import pytest
 
 import heliotrace
 
-
 # ---------------------------------------------------------------------------
 # Import tests
 # ---------------------------------------------------------------------------
+
 
 def test_package_version() -> None:
     assert isinstance(heliotrace.__version__, str)
@@ -36,13 +37,13 @@ def test_models_importable() -> None:
 
 
 def test_physics_importable() -> None:
-    from heliotrace.physics.fitting import perform_linear_fit  # noqa: F401
     from heliotrace.physics.apex_ratio import get_target_apex_ratio  # noqa: F401
     from heliotrace.physics.drag import (  # noqa: F401
         get_CME_mass_pluta,
         simulate_equation_of_motion_DBM,
         simulate_equation_of_motion_MODBM,
     )
+    from heliotrace.physics.fitting import perform_linear_fit  # noqa: F401
 
 
 def test_simulation_importable() -> None:
@@ -53,12 +54,13 @@ def test_simulation_importable() -> None:
 # Physics unit tests
 # ---------------------------------------------------------------------------
 
+
 def test_linear_fit_exact() -> None:
     """A perfect linear dataset should return near-zero χ² and exact slope."""
     from heliotrace.physics.fitting import perform_linear_fit
 
     x = np.array([0.0, 3600.0, 7200.0])
-    y = np.array([10.0, 14.0, 18.0])          # slope = 4/3600 R_sun/s
+    y = np.array([10.0, 14.0, 18.0])  # slope = 4/3600 R_sun/s
     result = perform_linear_fit(x, y)
 
     assert abs(result["slope"] - 4.0 / 3600.0) < 1e-10
@@ -69,6 +71,7 @@ def test_linear_fit_exact() -> None:
 def test_pluta_mass_formula() -> None:
     """CME mass must be positive and dimensionally consistent."""
     import astropy.units as u
+
     from heliotrace.physics.drag import get_CME_mass_pluta
 
     mass = get_CME_mass_pluta(773.0 * u.km / u.s)
@@ -90,13 +93,40 @@ def test_pluta_mass_closed_form() -> None:
 # Integration smoke test — 2023-10-28 event
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def reference_gcs_df() -> pd.DataFrame:
-    return pd.DataFrame([
-        {"datetime": datetime(2023, 10, 28, 14, 0),  "lon": 5.5, "lat": -20.1, "tilt": -7.5, "half_angle": 30.0, "height": 10.0, "kappa": 0.42},
-        {"datetime": datetime(2023, 10, 28, 14, 30), "lon": 5.5, "lat": -20.1, "tilt": -7.5, "half_angle": 30.0, "height": 12.1, "kappa": 0.42},
-        {"datetime": datetime(2023, 10, 28, 15, 0),  "lon": 5.5, "lat": -20.1, "tilt": -7.5, "half_angle": 30.0, "height": 14.0, "kappa": 0.42},
-    ])
+    return pd.DataFrame(
+        [
+            {
+                "datetime": datetime(2023, 10, 28, 14, 0),
+                "lon": 5.5,
+                "lat": -20.1,
+                "tilt": -7.5,
+                "half_angle": 30.0,
+                "height": 10.0,
+                "kappa": 0.42,
+            },
+            {
+                "datetime": datetime(2023, 10, 28, 14, 30),
+                "lon": 5.5,
+                "lat": -20.1,
+                "tilt": -7.5,
+                "half_angle": 30.0,
+                "height": 12.1,
+                "kappa": 0.42,
+            },
+            {
+                "datetime": datetime(2023, 10, 28, 15, 0),
+                "lon": 5.5,
+                "lat": -20.1,
+                "tilt": -7.5,
+                "half_angle": 30.0,
+                "height": 14.0,
+                "kappa": 0.42,
+            },
+        ]
+    )
 
 
 def test_derive_gcs_params_apex_velocity(reference_gcs_df: pd.DataFrame) -> None:
@@ -105,7 +135,9 @@ def test_derive_gcs_params_apex_velocity(reference_gcs_df: pd.DataFrame) -> None
 
     derived = derive_gcs_params(reference_gcs_df, height_error=0.25)
     # Allow ±5 % tolerance — exact value depends on linear fit
-    assert 700.0 < derived.v_apex_kms < 850.0, f"v_apex = {derived.v_apex_kms:.1f} km/s (expected ~773)"
+    assert 700.0 < derived.v_apex_kms < 850.0, (
+        f"v_apex = {derived.v_apex_kms:.1f} km/s (expected ~773)"
+    )
 
 
 def test_full_simulation_dbm_transit(reference_gcs_df: pd.DataFrame) -> None:

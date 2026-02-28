@@ -9,6 +9,7 @@ References
 - Pluta (2018) — CME mass / cross-section empirical formulae
 - Cargill (2004) — drag coefficient convergence
 """
+
 from __future__ import annotations
 
 import logging
@@ -17,7 +18,7 @@ from typing import Optional
 import astropy.units as u
 import numpy as np
 from astropy.constants import m_p
-from scipy.integrate import solve_ivp, OdeSolution
+from scipy.integrate import OdeSolution, solve_ivp
 from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
 
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # CME mass and cross-section (Pluta 2018)
 # ---------------------------------------------------------------------------
+
 
 def get_CME_mass_pluta(
     v_apex: u.Quantity | float,
@@ -63,18 +65,19 @@ def get_CME_cross_section_pluta(
     :param return_with_unit: When ``True`` return an Astropy ``Quantity`` in km².
     :return: Cross-section area [km²] as a Quantity or plain float.
     """
-    r_km    = r.to(u.km).value     if isinstance(r,     u.Quantity) else float(r)
-    a_rad   = alpha.to(u.rad).value if isinstance(alpha, u.Quantity) else float(alpha)
+    r_km = r.to(u.km).value if isinstance(r, u.Quantity) else float(r)
+    a_rad = alpha.to(u.rad).value if isinstance(alpha, u.Quantity) else float(alpha)
 
     r_c = r_km / (1.0 + kappa)
-    area = np.pi * np.tan(a_rad) * np.tan(np.arcsin(kappa)) * r_c ** 2
+    area = np.pi * np.tan(a_rad) * np.tan(np.arcsin(kappa)) * r_c**2
 
-    return area * u.km ** 2 if return_with_unit else float(area)
+    return area * u.km**2 if return_with_unit else float(area)
 
 
 # ---------------------------------------------------------------------------
 # DBM ambient conditions (Leblanc et al. 1998)
 # ---------------------------------------------------------------------------
+
 
 def get_ambient_solar_wind_density_DBM(r: u.Quantity) -> u.Quantity:
     """
@@ -85,7 +88,7 @@ def get_ambient_solar_wind_density_DBM(r: u.Quantity) -> u.Quantity:
     """
     r_rsun = r.to(u.R_sun).value
     n_init = 3.3e5 * u.cm ** (-3)
-    rho_w  = m_p * n_init / r_rsun ** 2
+    rho_w = m_p * n_init / r_rsun**2
     return rho_w
 
 
@@ -114,7 +117,7 @@ def get_constant_drag_parameter_DBM(
         M = M.to(u.kg)
 
     rho_w = get_ambient_solar_wind_density_DBM(r)
-    A     = get_CME_cross_section_pluta(r, alpha, kappa)
+    A = get_CME_cross_section_pluta(r, alpha, kappa)
     gamma = (c_d * A * rho_w / M).to(1 / u.km)
     logger.debug("DBM drag parameter γ = %.4e 1/km", gamma.value)
     return gamma
@@ -123,6 +126,7 @@ def get_constant_drag_parameter_DBM(
 # ---------------------------------------------------------------------------
 # DBM ODE and integrator
 # ---------------------------------------------------------------------------
+
 
 def _dr_dt_DBM(t: float, S: list[float], w: float, gamma: float) -> list[float]:
     """Two-equation DBM system of ODEs (plain floats for scipy)."""
@@ -147,14 +151,17 @@ def simulate_equation_of_motion_DBM(
     :param gamma:  Drag parameter γ [1 / length Quantity].
     :return: ``scipy.integrate.solve_ivp`` solution with ``dense_output=True``.
     """
-    r0_km    = r0.to(u.km).value
-    v0_kms   = v0.to(u.km / u.s).value
-    w_kms    = w.to(u.km / u.s).value
+    r0_km = r0.to(u.km).value
+    v0_kms = v0.to(u.km / u.s).value
+    w_kms = w.to(u.km / u.s).value
     gamma_km = gamma.to(1 / u.km).value
 
     logger.debug(
         "DBM ODE: r0=%.2f km, v0=%.1f km/s, w=%.1f km/s, γ=%.4e 1/km",
-        r0_km, v0_kms, w_kms, gamma_km,
+        r0_km,
+        v0_kms,
+        w_kms,
+        gamma_km,
     )
     return solve_ivp(
         _dr_dt_DBM,
@@ -169,6 +176,7 @@ def simulate_equation_of_motion_DBM(
 # MODBM ambient conditions (Venzmer & Bothmer 2018)
 # ---------------------------------------------------------------------------
 
+
 def get_ambient_solar_wind_density_MODBM(r_km: float, ssn: float) -> float:
     """
     Position-dependent solar wind density for the MODBM (Venzmer & Bothmer 2018).
@@ -177,13 +185,8 @@ def get_ambient_solar_wind_density_MODBM(r_km: float, ssn: float) -> float:
     :param ssn:  Monthly smoothed sunspot number (dimensionless).
     :return: Mass density [kg / km³].
     """
-    r_au  = r_km * u.km.to(u.AU)
-    rho_w = (
-        m_p.value
-        * (0.0038 * ssn + 4.5)
-        * (u.cm ** (-3)).to(u.km ** (-3))
-        * r_au ** (-2.11)
-    )
+    r_au = r_km * u.km.to(u.AU)
+    rho_w = m_p.value * (0.0038 * ssn + 4.5) * (u.cm ** (-3)).to(u.km ** (-3)) * r_au ** (-2.11)
     return float(rho_w)
 
 
@@ -235,6 +238,7 @@ def get_ambient_solar_wind_speed_MODBM(r_km: float, w_type: str) -> float:
 # MODBM ODE and integrator
 # ---------------------------------------------------------------------------
 
+
 def _dr_dt_MODBM(
     t: float,
     S: list[float],
@@ -248,7 +252,7 @@ def _dr_dt_MODBM(
     """Two-equation MODBM system of ODEs (plain floats for scipy)."""
     r, v = S
     gamma = get_varying_drag_parameter_MODBM(r, alpha_rad, kappa, M_kg, ssn, c_d)
-    w     = get_ambient_solar_wind_speed_MODBM(r, w_type)
+    w = get_ambient_solar_wind_speed_MODBM(r, w_type)
     return [v, -gamma * (v - w) * abs(v - w)]
 
 
@@ -283,14 +287,17 @@ def simulate_equation_of_motion_MODBM(
     if M is None:
         M = get_CME_mass_pluta(v_apex)
 
-    r0_km      = r0.to(u.km).value
-    v0_kms     = v0.to(u.km / u.s).value
-    alpha_rad  = alpha.to(u.rad).value
-    M_kg       = M.to(u.kg).value
+    r0_km = r0.to(u.km).value
+    v0_kms = v0.to(u.km / u.s).value
+    alpha_rad = alpha.to(u.rad).value
+    M_kg = M.to(u.kg).value
 
     logger.debug(
         "MODBM ODE: r0=%.2f km, v0=%.1f km/s, w_type=%s, ssn=%.0f",
-        r0_km, v0_kms, w_type, ssn,
+        r0_km,
+        v0_kms,
+        w_type,
+        ssn,
     )
     return solve_ivp(
         _dr_dt_MODBM,
@@ -304,6 +311,7 @@ def simulate_equation_of_motion_MODBM(
 # ---------------------------------------------------------------------------
 # Arrival extraction
 # ---------------------------------------------------------------------------
+
 
 def find_time_and_velocity_at_distance(
     sol: OdeSolution,
@@ -323,7 +331,7 @@ def find_time_and_velocity_at_distance(
     """
     r_interp = interp1d(sol.t, sol.y[0], kind="cubic")
     v_interp = interp1d(sol.t, sol.y[1], kind="cubic")
-    d_km     = distance.to(u.km).value
+    d_km = distance.to(u.km).value
 
     result = root_scalar(
         lambda t: r_interp(t) - d_km,
@@ -332,9 +340,7 @@ def find_time_and_velocity_at_distance(
     )
 
     if not result.converged:
-        raise ValueError(
-            f"Root-finding did not converge when looking for distance = {distance}."
-        )
+        raise ValueError(f"Root-finding did not converge when looking for distance = {distance}.")
 
     t_arr = float(result.root)
     v_arr = float(v_interp(t_arr))

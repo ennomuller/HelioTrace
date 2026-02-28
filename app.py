@@ -7,6 +7,7 @@ Run locally:
 Run via Docker:
     docker-compose up
 """
+
 import streamlit as st
 
 st.set_page_config(

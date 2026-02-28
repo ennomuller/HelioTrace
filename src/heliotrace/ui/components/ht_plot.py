@@ -1,12 +1,11 @@
 """
 Plotly Height-Time diagram with linear fit and velocity annotation.
 """
+
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
 
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -35,10 +34,10 @@ def build_ht_figure(
     df = df.sort_values("datetime").reset_index(drop=True)
     t_ref = df["datetime"].iloc[0]
 
-    t_min   = df["datetime"].min() - timedelta(minutes=20)
-    t_max   = df["datetime"].max() + timedelta(minutes=20)
+    t_min = df["datetime"].min() - timedelta(minutes=20)
+    t_max = df["datetime"].max() + timedelta(minutes=20)
     t_range = pd.date_range(t_min, t_max, periods=200)
-    t_sec   = (t_range - t_ref).total_seconds().to_numpy()
+    t_sec = (t_range - t_ref).total_seconds().to_numpy()
     fit_heights = slope * t_sec + intercept
 
     fig = go.Figure()
@@ -68,10 +67,15 @@ def build_ht_figure(
 
     fig.add_annotation(
         text=f"<b>v = ({v_apex_kms:.0f} ± {v_apex_error_kms:.0f}) km/s</b>",
-        xref="paper", yref="paper",
-        x=0.98, y=0.06,
-        showarrow=False, align="right",
-        bgcolor="white", bordercolor="#888", borderwidth=1,
+        xref="paper",
+        yref="paper",
+        x=0.98,
+        y=0.06,
+        showarrow=False,
+        align="right",
+        bgcolor="white",
+        bordercolor="#888",
+        borderwidth=1,
         font=dict(size=15, color="#1f77b4"),
     )
 
@@ -80,16 +84,23 @@ def build_ht_figure(
         yaxis_title="CME Front Height [R☉]",
         xaxis_title_font=dict(size=14),
         yaxis_title_font=dict(size=14),
-        legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)", bordercolor="#ccc", borderwidth=1,
-                    font=dict(size=13)),
+        legend=dict(
+            x=0.01,
+            y=0.99,
+            bgcolor="rgba(255,255,255,0.8)",
+            bordercolor="#ccc",
+            borderwidth=1,
+            font=dict(size=13),
+        ),
         hovermode="x unified",
         margin=dict(t=30, b=60, l=60, r=20),
         height=480,
         plot_bgcolor="white",
         paper_bgcolor="white",
     )
-    fig.update_xaxes(showgrid=True, gridcolor="#eee", tickformat="%d-%m\n%H:%M",
-                     tickfont=dict(size=12))
+    fig.update_xaxes(
+        showgrid=True, gridcolor="#eee", tickformat="%d-%m\n%H:%M", tickfont=dict(size=12)
+    )
     fig.update_yaxes(showgrid=True, gridcolor="#eee", tickfont=dict(size=12))
 
     return fig

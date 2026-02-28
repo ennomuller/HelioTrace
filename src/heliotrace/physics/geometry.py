@@ -11,12 +11,13 @@ by Andreas Thernisien (original GCS model author).
 All public functions use plain NumPy arrays.  ``gcs_mesh_sunpy`` is a
 notebook-only convenience wrapper and requires the optional ``sunpy`` package.
 """
+
 from __future__ import annotations
 
 import logging
 
 import numpy as np
-from numpy import pi, sin, cos, tan, arcsin, sqrt
+from numpy import arcsin, cos, pi, sin, sqrt, tan
 from numpy.linalg import norm
 from scipy.spatial.transform import Rotation
 
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # GCS axis skeleton
 # ---------------------------------------------------------------------------
+
 
 def skeleton(
     alpha: float,
@@ -56,24 +58,24 @@ def skeleton(
         np.linspace(0, distjunc, straight_vertices),
         np.array([0.0, -sin(alpha), cos(alpha)]),
     )
-    rsl  = tan(gamma) * norm(pslR, axis=1)
+    rsl = tan(gamma) * norm(pslR, axis=1)
     casl = np.full(straight_vertices, -alpha)
 
     beta = np.linspace(-alpha, pi / 2, front_vertices)
-    hf   = distjunc
-    h    = hf / cos(alpha)
-    rho  = hf * tan(alpha)
+    hf = distjunc
+    h = hf / cos(alpha)
+    rho = hf * tan(alpha)
 
-    X0 = (rho + h * k ** 2 * sin(beta)) / (1 - k ** 2)
-    rc = sqrt((h ** 2 * k ** 2 - rho ** 2) / (1 - k ** 2) + X0 ** 2)
+    X0 = (rho + h * k**2 * sin(beta)) / (1 - k**2)
+    rc = sqrt((h**2 * k**2 - rho**2) / (1 - k**2) + X0**2)
     cac = beta
 
     pcR = np.array([np.zeros(beta.shape), X0 * cos(beta), h + X0 * sin(beta)]).T
     pcL = np.array([np.zeros(beta.shape), -X0 * cos(beta), h + X0 * sin(beta)]).T
 
-    r  = np.concatenate((rsl, rc[1:], np.flipud(rc)[1:], np.flipud(rsl)[1:]))
+    r = np.concatenate((rsl, rc[1:], np.flipud(rc)[1:], np.flipud(rsl)[1:]))
     ca = np.concatenate((casl, cac[1:], pi - np.flipud(cac)[1:], pi - np.flipud(casl)[1:]))
-    p  = np.concatenate((pslR, pcR[1:], np.flipud(pcL)[1:], np.flipud(pslL)[1:]))
+    p = np.concatenate((pslR, pcR[1:], np.flipud(pcL)[1:], np.flipud(pslL)[1:]))
 
     return p, r, ca
 
@@ -81,6 +83,7 @@ def skeleton(
 # ---------------------------------------------------------------------------
 # GCS mesh
 # ---------------------------------------------------------------------------
+
 
 def gcs_mesh(
     alpha: float,
@@ -117,11 +120,7 @@ def gcs_mesh(
     u, v = np.meshgrid(theta, pspace)
     u, v = u.flatten(), v.flatten()
 
-    mesh = (
-        r[v, np.newaxis]
-        * np.array([cos(u), sin(u) * cos(ca[v]), sin(u) * sin(ca[v])]).T
-        + p[v]
-    )
+    mesh = r[v, np.newaxis] * np.array([cos(u), sin(u) * cos(ca[v]), sin(u) * sin(ca[v])]).T + p[v]
 
     return mesh, u, v
 
@@ -129,6 +128,7 @@ def gcs_mesh(
 # ---------------------------------------------------------------------------
 # Rotation
 # ---------------------------------------------------------------------------
+
 
 def rotate_mesh(mesh: np.ndarray, neang: list[float] | np.ndarray) -> np.ndarray:
     """
@@ -177,6 +177,7 @@ def gcs_mesh_rotated(
 # Derived quantities
 # ---------------------------------------------------------------------------
 
+
 def apex_radius(height: float, k: float) -> float:
     """
     Cross-section radius of the flux rope at the apex.
@@ -191,6 +192,7 @@ def apex_radius(height: float, k: float) -> float:
 # ---------------------------------------------------------------------------
 # Notebook-only: SunPy SkyCoord output (requires optional sunpy dep)
 # ---------------------------------------------------------------------------
+
 
 def gcs_mesh_sunpy(
     date: object,
@@ -228,8 +230,7 @@ def gcs_mesh_sunpy(
         from sunpy.coordinates import frames, sun  # noqa: F401 — checked at call time
     except ImportError as exc:
         raise ImportError(
-            "gcs_mesh_sunpy requires sunpy. "
-            "Install it with: pip install heliotrace[notebooks]"
+            "gcs_mesh_sunpy requires sunpy. Install it with: pip install heliotrace[notebooks]"
         ) from exc
 
     mesh, _u, _v = gcs_mesh_rotated(
