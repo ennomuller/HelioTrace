@@ -158,6 +158,7 @@ was probably not:
 - in the model comparison plot, plot the labels of the arrival lines so that they do not overlap, e.g. by plotting the label of the dotted line of the model that arrives first on the left of the line and of the one arriving later on the right of its dotted arrival line
 - in the model comparison plot, show label box for both models either in top middle of entire comparison plot (between both subplots) or bottom middle, whatever is more scientific
 - rework the current event info/identifier: make it possible to use any string (with reasonable max length, and explanatory example entry entered like Halo CME + some common scale value or something), and use this string in any descriptions, titles, plots and results where it makes sense; keep the event date as it is now, but like a standard english date, and make the tooltip list all the actual methods/algorithms/positions it is used for/within, and (also) use it for the automatic target position calibration via sunpy
+- rewrite all MODBM (MOdified Drag Based Model) mentions to MoDBM (Modified Drag Based Model) since this is how the thesis uses it
 
 ### branch:
 
