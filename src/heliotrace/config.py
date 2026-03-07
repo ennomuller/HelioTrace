@@ -3,6 +3,7 @@ Application-level configuration: event presets and default GCS table rows.
 
 This is the single source of truth for static data.  Add new preset events here.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -28,38 +29,38 @@ TARGET_PRESETS: dict[str, dict[str, float] | None] = {
 
 # Compact observation rows for the sidebar table (time + height only)
 DEFAULT_OBS_ROWS: list[dict] = [
-    {"datetime": datetime(2023, 10, 28, 14, 0),  "height": 10.0},
+    {"datetime": datetime(2023, 10, 28, 14, 0), "height": 10.0},
     {"datetime": datetime(2023, 10, 28, 14, 30), "height": 12.1},
-    {"datetime": datetime(2023, 10, 28, 15, 0),  "height": 14.0},
+    {"datetime": datetime(2023, 10, 28, 15, 0), "height": 14.0},
 ]
 
 # Full 7-column rows (kept for tests and legacy compatibility)
 DEFAULT_GCS_ROWS: list[dict] = [
     {
-        "datetime":   datetime(2023, 10, 28, 14, 0),
-        "lon":        5.5,
-        "lat":        -20.1,
-        "tilt":       -7.5,
+        "datetime": datetime(2023, 10, 28, 14, 0),
+        "lon": 5.5,
+        "lat": -20.1,
+        "tilt": -7.5,
         "half_angle": 30.0,
-        "height":     10.0,
-        "kappa":      0.42,
+        "height": 10.0,
+        "kappa": 0.42,
     },
     {
-        "datetime":   datetime(2023, 10, 28, 14, 30),
-        "lon":        5.5,
-        "lat":        -20.1,
-        "tilt":       -7.5,
+        "datetime": datetime(2023, 10, 28, 14, 30),
+        "lon": 5.5,
+        "lat": -20.1,
+        "tilt": -7.5,
         "half_angle": 30.0,
-        "height":     12.1,
-        "kappa":      0.42,
+        "height": 12.1,
+        "kappa": 0.42,
     },
     {
-        "datetime":   datetime(2023, 10, 28, 15, 0),
-        "lon":        5.5,
-        "lat":        -20.1,
-        "tilt":       -7.5,
+        "datetime": datetime(2023, 10, 28, 15, 0),
+        "lon": 5.5,
+        "lat": -20.1,
+        "tilt": -7.5,
         "half_angle": 30.0,
-        "height":     14.0,
-        "kappa":      0.42,
+        "height": 14.0,
+        "kappa": 0.42,
     },
 ]

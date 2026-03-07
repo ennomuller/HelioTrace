@@ -1,6 +1,7 @@
 """
 HelioTrace — Home page.
 """
+
 import streamlit as st
 
 # ---------------------------------------------------------------------------
@@ -132,9 +133,6 @@ st.divider()
 # Data source notice
 # ---------------------------------------------------------------------------
 st.caption(
-    # TODO: Replace this static placeholder with live Earth and target-body
-    # position retrieval (e.g., from JPL Horizons via Astropy, or SunPy
-    # get_horizons_coord / SPICE kernels). For now this serves as a dummy label.
     "📡 Data source: GCS parameters derived from multi-viewpoint coronagraph observations "
     "(LASCO C2/C3, STEREO COR1/COR2) using the Graduated Cylindrical Shell model."
 )

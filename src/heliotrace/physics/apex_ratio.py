@@ -5,6 +5,7 @@ The Target-to-Apex Height Ratio (also called the Geometric Projection Factor)
 quantifies the radial extent of the GCS mesh along the Sun–Target line of sight.
 A return value of 0.0 indicates the CME misses the target entirely.
 """
+
 from __future__ import annotations
 
 import logging
@@ -53,8 +54,8 @@ def get_target_apex_ratio(
              at half-maximum’ convention used in GCS-based hit/miss studies
              (e.g. Möstl et al. 2017, *Space Weather*).
     """
-    alpha_rad    = float(alpha.to(u.rad).value)
-    tilt_rad     = float(tilt.to(u.rad).value)
+    alpha_rad = float(alpha.to(u.rad).value)
+    tilt_rad = float(tilt.to(u.rad).value)
     relative_lon = float((cme_lon - target_lon).to(u.rad).value)
     relative_lat = float((cme_lat - target_lat).to(u.rad).value)
 

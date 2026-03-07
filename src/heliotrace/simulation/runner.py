@@ -3,10 +3,10 @@ Simulation orchestrator — bridges the UI input layer with the pure-physics mod
 
 No Streamlit imports here; this module is fully testable in isolation.
 """
+
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 import astropy.units as u
 import numpy as np
@@ -22,7 +22,6 @@ from heliotrace.physics.apex_ratio import get_target_apex_ratio
 from heliotrace.physics.drag import (
     find_time_and_velocity_at_distance,
     get_constant_drag_parameter_DBM,
-    get_CME_mass_pluta,
     simulate_equation_of_motion_DBM,
     simulate_equation_of_motion_MODBM,
 )
@@ -36,6 +35,7 @@ _RSUN_TO_KM: float = float((1 * u.R_sun).to(u.km).value)
 # ---------------------------------------------------------------------------
 # Step 1 — GCS data → derived initial conditions
 # ---------------------------------------------------------------------------
+
 
 def derive_gcs_params(df: pd.DataFrame, height_error: float) -> DerivedGCSParams:
     """
@@ -58,7 +58,7 @@ def derive_gcs_params(df: pd.DataFrame, height_error: float) -> DerivedGCSParams
         y_error=float(height_error),
     )
 
-    v_apex_kms       = float((fit["slope"]       * u.R_sun / u.s).to(u.km / u.s).value)
+    v_apex_kms = float((fit["slope"] * u.R_sun / u.s).to(u.km / u.s).value)
     v_apex_error_kms = float((fit["slope_error"] * u.R_sun / u.s).to(u.km / u.s).value)
 
     logger.info(
@@ -87,6 +87,7 @@ def derive_gcs_params(df: pd.DataFrame, height_error: float) -> DerivedGCSParams
 # Internal helper — ODE solution → plottable arrays
 # ---------------------------------------------------------------------------
 
+
 def _sample_solution(sol: object, elapsed_s: float, extra_hours: float = 3.0) -> PropagationSeries:
     """
     Sample a ``solve_ivp`` dense solution into plain Python lists for Plotly.
@@ -110,6 +111,7 @@ def _sample_solution(sol: object, elapsed_s: float, extra_hours: float = 3.0) ->
 # Step 2 — Full simulation pipeline
 # ---------------------------------------------------------------------------
 
+
 def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> SimulationResults:
     """
     Execute the complete CME propagation pipeline.
@@ -126,23 +128,28 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
     :param config: All user-controlled parameters.
     :return: :class:`~heliotrace.models.schemas.SimulationResults`.
     """
-    logger.info("Starting simulation for event %s → target %s", config.event_str, config.target.name)
+    logger.info(
+        "Starting simulation for event %s → target %s", config.event_str, config.target.name
+    )
 
     # --- 1) Derive initial conditions ---
     derived = derive_gcs_params(df, config.height_error)
 
-    alpha  = derived.alpha_deg  * u.deg
-    kappa  = derived.kappa
-    lat    = derived.lat_deg    * u.deg
-    lon    = derived.lon_deg    * u.deg
-    tilt   = derived.tilt_deg   * u.deg
-    r0     = derived.r0_rsun    * u.R_sun
+    alpha = derived.alpha_deg * u.deg
+    kappa = derived.kappa
+    lat = derived.lat_deg * u.deg
+    lon = derived.lon_deg * u.deg
+    tilt = derived.tilt_deg * u.deg
+    r0 = derived.r0_rsun * u.R_sun
     v_apex = derived.v_apex_kms * u.km / u.s
 
     # --- 2) Geometry: projection ratio → v₀ ---
     projection_ratio = get_target_apex_ratio(
-        alpha=alpha, kappa=kappa,
-        cme_lat=lat, cme_lon=lon, tilt=tilt,
+        alpha=alpha,
+        kappa=kappa,
+        cme_lat=lat,
+        cme_lon=lon,
+        tilt=tilt,
         target_lat=config.target.lat * u.deg,
         target_lon=config.target.lon * u.deg,
     )
@@ -157,19 +164,35 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
     # --- 3) Drag parameters ---
     M_override = (config.m_override_g * u.g) if config.m_override_g is not None else None
     gamma = get_constant_drag_parameter_DBM(
-        r=r0, alpha=alpha, kappa=kappa, v_apex=v_apex, M=M_override, c_d=config.c_d,
+        r=r0,
+        alpha=alpha,
+        kappa=kappa,
+        v_apex=v_apex,
+        M=M_override,
+        c_d=config.c_d,
     )
 
     # --- 4) Integrate ODEs ---
     t_span: tuple[float, float] = (0.0, 225.0 * 3600.0)
 
-    sol_DBM   = simulate_equation_of_motion_DBM(
-        t_span, r0=r0, v0=v0, w=config.w * u.km / u.s, gamma=gamma,
+    sol_DBM = simulate_equation_of_motion_DBM(
+        t_span,
+        r0=r0,
+        v0=v0,
+        w=config.w * u.km / u.s,
+        gamma=gamma,
     )
     sol_MODBM = simulate_equation_of_motion_MODBM(
-        t_span, r0=r0, v_apex=v_apex, v0=v0,
-        alpha=alpha, kappa=kappa,
-        w_type=config.w_type, ssn=config.ssn, c_d=config.c_d, M=M_override,
+        t_span,
+        r0=r0,
+        v_apex=v_apex,
+        v0=v0,
+        alpha=alpha,
+        kappa=kappa,
+        w_type=config.w_type,
+        ssn=config.ssn,
+        c_d=config.c_d,
+        M=M_override,
     )
 
     # --- 5) Arrival at target ---
@@ -183,15 +206,17 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
     if target_hit:
         try:
             elapsed_DBM, vel_DBM = find_time_and_velocity_at_distance(sol_DBM, target_distance)
-            arrival_DBM  = derived.t0 + pd.Timedelta(seconds=elapsed_DBM)
-            series_DBM   = _sample_solution(sol_DBM, elapsed_DBM)
+            arrival_DBM = derived.t0 + pd.Timedelta(seconds=elapsed_DBM)
+            series_DBM = _sample_solution(sol_DBM, elapsed_DBM)
         except (ValueError, Exception) as exc:
             logger.warning("DBM arrival extraction failed: %s", exc)
 
         try:
-            elapsed_MODBM, vel_MODBM = find_time_and_velocity_at_distance(sol_MODBM, target_distance)
+            elapsed_MODBM, vel_MODBM = find_time_and_velocity_at_distance(
+                sol_MODBM, target_distance
+            )
             arrival_MODBM = derived.t0 + pd.Timedelta(seconds=elapsed_MODBM)
-            series_MODBM  = _sample_solution(sol_MODBM, elapsed_MODBM)
+            series_MODBM = _sample_solution(sol_MODBM, elapsed_MODBM)
         except (ValueError, Exception) as exc:
             logger.warning("MODBM arrival extraction failed: %s", exc)
 

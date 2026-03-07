@@ -5,6 +5,7 @@ Call ``init_session_state()`` once at the top of every page that uses shared sta
 Keeping this in a dedicated module avoids circular imports while remaining
 importable only inside a running Streamlit context.
 """
+
 from __future__ import annotations
 
 
@@ -20,7 +21,7 @@ def init_session_state() -> None:
 
     defaults: dict = {
         KEY_SIM_RESULTS: None,
-        KEY_SIM_CONFIG:  None,
+        KEY_SIM_CONFIG: None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:

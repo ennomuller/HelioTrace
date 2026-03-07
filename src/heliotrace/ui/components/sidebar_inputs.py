@@ -4,6 +4,7 @@ Sidebar input panel for HelioTrace.
 Renders all user-controllable parameters and returns a
 ``(SimulationConfig, GCSParams, obs_df, run_clicked)`` tuple.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -15,21 +16,20 @@ import streamlit as st
 from heliotrace.config import DEFAULT_OBS_ROWS, TARGET_PRESETS
 from heliotrace.models.schemas import GCSParams, SimulationConfig, TargetConfig
 
-
 # ---------------------------------------------------------------------------
 # Example event: 2023-10-28 Halloween CME
 # ---------------------------------------------------------------------------
 _EXAMPLE: dict = {
-    "sb_event_str":      "20231028",
-    "sb_gcs_lon":        "5.5",
-    "sb_gcs_lat":        "-20.1",
-    "sb_gcs_tilt":       "-7.5",
+    "sb_event_str": "20231028",
+    "sb_gcs_lon": "5.5",
+    "sb_gcs_lat": "-20.1",
+    "sb_gcs_tilt": "-7.5",
     "sb_gcs_half_angle": "30.0",
-    "sb_gcs_kappa":      "0.42",
-    "sb_w":              390,
-    "sb_w_type":         "slow",
-    "sb_ssn":            100,
-    "sb_toa_raw":        "31/10/2023 14:00:00",
+    "sb_gcs_kappa": "0.42",
+    "sb_w": 390,
+    "sb_w_type": "slow",
+    "sb_ssn": 100,
+    "sb_toa_raw": "31/10/2023 14:00:00",
 }
 
 _EMPTY_OBS_DF = pd.DataFrame(
@@ -52,9 +52,7 @@ def _fill_example() -> None:
     for key, val in _EXAMPLE.items():
         st.session_state[key] = val
     # Increment the editor counter so the data_editor re-initialises from DEFAULT_OBS_ROWS
-    st.session_state["sb_editor_counter"] = (
-        st.session_state.get("sb_editor_counter", 0) + 1
-    )
+    st.session_state["sb_editor_counter"] = st.session_state.get("sb_editor_counter", 0) + 1
     st.rerun()
 
 
@@ -111,7 +109,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         # ------------------------------------------------------------------ #
         st.subheader("🎯 Target")
 
-        preset_names  = list(TARGET_PRESETS.keys())
+        preset_names = list(TARGET_PRESETS.keys())
         preset_choice = st.selectbox(
             "Target body",
             options=preset_names,
@@ -119,19 +117,25 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             help="Select a preconfigured target, or choose 'Custom' to enter coordinates manually.",
         )
 
-        is_custom  = TARGET_PRESETS[preset_choice] is None
+        is_custom = TARGET_PRESETS[preset_choice] is None
         preset_vals: dict[str, float] = TARGET_PRESETS.get(preset_choice) or {}  # type: ignore[assignment]
 
         if is_custom:
             target_name = st.text_input("Target name", value="Custom")
             cc1, cc2 = st.columns(2)
-            target_lon  = cc1.number_input("Lon [deg]",  value=0.0, min_value=-180.0, max_value=180.0, step=0.5, format="%.1f")
-            target_lat  = cc2.number_input("Lat [deg]",  value=0.0, min_value=-90.0,  max_value=90.0,  step=0.5, format="%.1f")
-            target_dist = st.number_input("Distance [AU]", value=1.0, min_value=0.01, max_value=5.0, step=0.01, format="%.3f")
+            target_lon = cc1.number_input(
+                "Lon [deg]", value=0.0, min_value=-180.0, max_value=180.0, step=0.5, format="%.1f"
+            )
+            target_lat = cc2.number_input(
+                "Lat [deg]", value=0.0, min_value=-90.0, max_value=90.0, step=0.5, format="%.1f"
+            )
+            target_dist = st.number_input(
+                "Distance [AU]", value=1.0, min_value=0.01, max_value=5.0, step=0.01, format="%.3f"
+            )
         else:
             target_name = preset_choice.split(" (")[0]
-            target_lon  = preset_vals["lon"]
-            target_lat  = preset_vals["lat"]
+            target_lon = preset_vals["lon"]
+            target_lat = preset_vals["lat"]
             target_dist = preset_vals["distance"]
             st.caption(
                 f"Lon: **{target_lon}°** | Lat: **{target_lat}°** | Distance: **{target_dist} AU**"
@@ -169,9 +173,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             key="sb_gcs_tilt",
             help="Tilt of the CME flux-rope axis relative to the solar equatorial plane [deg].",
         )
-        gcs_lon   = _parse_float(gcs_lon_str)
-        gcs_lat   = _parse_float(gcs_lat_str)
-        gcs_tilt  = _parse_float(gcs_tilt_str)
+        gcs_lon = _parse_float(gcs_lon_str)
+        gcs_lat = _parse_float(gcs_lat_str)
+        gcs_tilt = _parse_float(gcs_tilt_str)
 
         c_ha, c_kp = st.columns(2)
         gcs_half_angle_str = c_ha.text_input(
@@ -187,7 +191,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             help="GCS aspect ratio κ: cross-section radius / apex distance. Valid: [0.01, 0.99].",
         )
         gcs_half_angle = _parse_float(gcs_half_angle_str)
-        gcs_kappa      = _parse_float(gcs_kappa_str)
+        gcs_kappa = _parse_float(gcs_kappa_str)
         if gcs_half_angle and not 5.0 <= gcs_half_angle <= 60.0:
             st.warning("⚠️ Half-angle outside typical range 5–60°.")
         if gcs_kappa and not 0.1 <= gcs_kappa <= 0.8:
@@ -200,10 +204,8 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         st.subheader("📋 Observations")
         st.caption("CME apex heights from coronagraph images.")
 
-        counter  = st.session_state.get("sb_editor_counter", 0)
-        obs_init = (
-            pd.DataFrame(DEFAULT_OBS_ROWS) if counter > 0 else _EMPTY_OBS_DF
-        )
+        counter = st.session_state.get("sb_editor_counter", 0)
+        obs_init = pd.DataFrame(DEFAULT_OBS_ROWS) if counter > 0 else _EMPTY_OBS_DF
 
         obs_df: pd.DataFrame = st.data_editor(
             obs_init,
@@ -253,7 +255,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         st.markdown("**DBM only**")
         w = st.slider(
             "Solar wind speed w [km/s]",
-            min_value=250, max_value=700, value=390,
+            min_value=250,
+            max_value=700,
+            value=390,
             key="sb_w",
             step=10,
             help="Constant ambient solar wind speed used by the standard DBM.",
@@ -269,7 +273,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         )
         ssn = st.slider(
             "Smoothed SSN",
-            min_value=0, max_value=300, value=100,
+            min_value=0,
+            max_value=300,
+            value=100,
             key="sb_ssn",
             step=1,
             help="Monthly smoothed total sunspot number for the MODBM density profile.",
@@ -290,12 +296,15 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
 
             st.divider()
             st.caption("Optional overrides")
-            toa_raw: Optional[str] = st.text_input(
-                "Expected arrival time (optional)",
-                key="sb_toa_raw",
-                placeholder="DD/MM/YYYY HH:MM:SS",
-                help="Observed/predicted arrival for comparison. Leave blank to skip.",
-            ) or None
+            toa_raw: Optional[str] = (
+                st.text_input(
+                    "Expected arrival time (optional)",
+                    key="sb_toa_raw",
+                    placeholder="DD/MM/YYYY HH:MM:SS",
+                    help="Observed/predicted arrival for comparison. Leave blank to skip.",
+                )
+                or None
+            )
 
             if toa_raw:
                 try:
@@ -319,7 +328,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 key="sb_v0_override",
                 placeholder="e.g. 600",
                 help="Hard override for the CME velocity component directed at the target. "
-                     "Replaces the geometry-derived v₀ = v_apex × projection ratio.",
+                "Replaces the geometry-derived v₀ = v_apex × projection ratio.",
             )
             v0_override_kms: Optional[float] = _parse_float(v0_override_str)
 

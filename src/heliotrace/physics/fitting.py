@@ -1,6 +1,7 @@
 """
 Linear least-squares fitting for CME Height-Time analysis.
 """
+
 from __future__ import annotations
 
 import logging
@@ -39,10 +40,17 @@ def perform_linear_fit(
         return m * x + b
 
     if y_error is not None:
-        sigma = np.full_like(y_data, float(y_error)) if np.isscalar(y_error) else np.asarray(y_error, dtype=float)
+        sigma = (
+            np.full_like(y_data, float(y_error))
+            if np.isscalar(y_error)
+            else np.asarray(y_error, dtype=float)
+        )
         popt, pcov = curve_fit(
-            _linear, x_data, y_data,
-            sigma=sigma, absolute_sigma=True,
+            _linear,
+            x_data,
+            y_data,
+            sigma=sigma,
+            absolute_sigma=True,
             p0=initial_guess,
         )
         residuals = (y_data - _linear(x_data, *popt)) / sigma
@@ -52,17 +60,19 @@ def perform_linear_fit(
 
     slope, intercept = popt
     slope_error, intercept_error = np.sqrt(np.diag(pcov))
-    chi_squared = float(np.sum(residuals ** 2))
+    chi_squared = float(np.sum(residuals**2))
 
     logger.debug(
         "Linear fit: slope=%.4e, intercept=%.4f, chi²=%.4f",
-        slope, intercept, chi_squared,
+        slope,
+        intercept,
+        chi_squared,
     )
 
     return {
-        "slope":            float(slope),
-        "intercept":        float(intercept),
-        "slope_error":      float(slope_error),
-        "intercept_error":  float(intercept_error),
-        "chi_squared":      chi_squared,
+        "slope": float(slope),
+        "intercept": float(intercept),
+        "slope_error": float(slope_error),
+        "intercept_error": float(intercept_error),
+        "chi_squared": chi_squared,
     }
