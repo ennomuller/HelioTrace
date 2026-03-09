@@ -102,7 +102,7 @@ with st.expander("📚 Acknowledgments & Credits", expanded=False):
         (`src/heliotrace/physics/geometry.py`) are adapted from the
         **[gcs_python](https://github.com/johan12345/gcs_python)** library
         by **Johan von Forstner**, which is itself a Python port of IDL routines
-        from the original GCS model implementation. We gratefully acknowledge
+        from the original GCS model implementation. I gratefully acknowledge
         this foundational work.
 
         #### Scientific Models & Citations
