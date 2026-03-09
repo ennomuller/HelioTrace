@@ -201,6 +201,7 @@ with tab1:
             "the H-T fit and apex velocity."
         )
     else:
+        assert clean_df is not None
         derived: DerivedGCSParams = _cached_derived_params(clean_df, config.height_error)
 
         ht_fig = build_ht_figure(
@@ -252,7 +253,7 @@ with tab2:
         else:
             with st.spinner("Running DBM & MODBM simulations…"):
                 try:
-                    results: SimulationResults = run_full_simulation(clean_df, config)
+                    results = run_full_simulation(clean_df, config)
                     st.session_state[KEY_SIM_RESULTS] = results
                     st.session_state[KEY_SIM_CONFIG] = config
                     st.success("✅ Simulation complete!")
@@ -272,9 +273,11 @@ with tab2:
         )
         st.stop()
 
+    assert stored_config is not None
+
     if not results.target_hit:
         st.error(
-            f"**GEOMETRY: MISS** — The simulation was run but the CME does not intercept "
+            f"**GEOMETRY: MISS** — The simulation was run but the ICME does not intercept "
             f"**{stored_config.target.name}**. No propagation result is available."
         )
         st.stop()

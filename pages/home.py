@@ -14,7 +14,7 @@ st.markdown(
     **HelioTrace** is an interactive research tool for modelling the propagation of
     **Interplanetary Coronal Mass Ejections (ICMEs)** through the inner heliosphere.
     Built with Python & Streamlit, it combines 3D geometric fitting of coronagraph
-    observations with physics-based drag models to predict CME arrival times and
+    observations with physics-based drag models to predict ICME arrival times and
     impact speeds at any heliospheric target.
     """
 )

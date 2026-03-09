@@ -93,7 +93,7 @@ can trigger geomagnetic storms — making accurate transit-time forecasting a co
 in operational space weather.  HelioTrace chains three physics components:
 
 | Component | Model | What it enables |
-|---|---|---|
+| --- | --- | --- |
 | **3D CME shape** | GCS — Graduated Cylindrical Shell ([Thernisien et al. 2006](https://doi.org/10.1086/508254)) | Live 3D mesh, initial velocity, and projection ratio from multi-epoch coronagraph data |
 | **Constant-drag propagation** | DBM ([Vršnak et al. 2013](https://doi.org/10.1007/s11207-012-0035-4)) | Fast analytic transit-time estimate with a single solar wind speed parameter |
 | **Physics-enhanced propagation** | MODBM (density profile from [Venzmer & Bothmer 2018](https://doi.org/10.1051/0004-6361/201731831)) | Numerically integrated solution with distance- and SSN-dependent solar wind |
@@ -115,15 +115,17 @@ This application was developed as part of a Master's Thesis at **[University —
 
 ## Acknowledgments
 
-#### GCS Geometry Code
+### GCS Geometry Code
+
 Significant portions of `src/heliotrace/physics/geometry.py` are adapted from
 **[gcs_python](https://github.com/johan12345/gcs_python)** by **Johan von Forstner**,
 a Python port of the original IDL GCS routines by Andreas Thernisien.
 See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for full details.
 
-#### Software
+### Software
+
 | Package | Role |
-|---|---|
+| --- | --- |
 | [Streamlit](https://streamlit.io) | Interactive web framework |
 | [Plotly](https://plotly.com/python/) | Interactive visualisation |
 | [SciPy](https://scipy.org) | ODE integration, triangulation, linear algebra |
