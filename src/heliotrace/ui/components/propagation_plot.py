@@ -182,7 +182,9 @@ def build_propagation_comparison_figure(
                 name=label,
                 line=dict(color=color, width=2.5),
                 legendgroup=label,
-                hovertemplate=f"<b>{label}</b><br>t = %{{x:.1f}} h<br>r = %{{y:.0f}} R☉<extra></extra>",
+                hovertemplate=(
+                    f"<b>{label}</b><br>t = %{{x:.1f}} h<br>r = %{{y:.0f}} R☉<extra></extra>"
+                ),
             ),
             row=1,
             col=1,
@@ -197,7 +199,9 @@ def build_propagation_comparison_figure(
                 line=dict(color=color, width=2.5),
                 legendgroup=label,
                 showlegend=False,
-                hovertemplate=f"<b>{label}</b><br>t = %{{x:.1f}} h<br>v = %{{y:.0f}} km/s<extra></extra>",
+                hovertemplate=(
+                    f"<b>{label}</b><br>t = %{{x:.1f}} h<br>v = %{{y:.0f}} km/s<extra></extra>"
+                ),
             ),
             row=1,
             col=2,

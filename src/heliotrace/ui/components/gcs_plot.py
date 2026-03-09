@@ -2,16 +2,13 @@
 Plotly 3D GCS mesh visualisation with target projection indicator.
 
 Replaces the notebook's ``plot_rotated_gcs_mesh_with_ear()`` with a fully
-interactive Plotly 3D figure.
-
-Note: triangulation uses ``scipy.spatial.Delaunay`` — no matplotlib dependency.
+interactive Plotly 3D figure using a grid wireframe.
 """
 
 from __future__ import annotations
 
 import numpy as np
 import plotly.graph_objects as go
-from scipy.spatial import Delaunay
 
 from heliotrace.physics.geometry import gcs_mesh_rotated
 
@@ -27,7 +24,6 @@ def build_gcs_figure(
     projection_ratio: float,
     target_name: str = "Target",
     height: float = 1.0,
-    res: int = 20,
 ) -> go.Figure:
     """
     Build an interactive Plotly 3D figure of the GCS mesh with projection indicator.
@@ -45,7 +41,6 @@ def build_gcs_figure(
     :param projection_ratio: Precomputed target/apex height ratio.
     :param target_name:      Display name for the target.
     :param height:           Scale factor (apex = 1 for display purposes).
-    :param res:              Mesh resolution (rings per dimension).
     :return: Plotly :class:`~plotly.graph_objects.Figure`.
     """
     rel_lon = float((lon_deg - target_lon_deg) * np.pi / 180.0)
@@ -53,51 +48,46 @@ def build_gcs_figure(
     alpha_rad = float(alpha_deg * np.pi / 180.0)
     tilt_rad = float(tilt_deg * np.pi / 180.0)
 
-    mesh, uu, vv = gcs_mesh_rotated(
-        alpha_rad, height, res, res, res, kappa, rel_lat, rel_lon, tilt_rad
+    _straight = 20
+    _front = 20
+    _circle = 20
+
+    mesh, _u, _v = gcs_mesh_rotated(
+        alpha_rad, height, _straight, _front, _circle, kappa, rel_lat, rel_lon, tilt_rad
     )
 
-    # Delaunay triangulation on the parametric (u, v) plane
-    tri = Delaunay(np.column_stack([uu, vv]))
-    triangles = tri.simplices
+    # Reshape into (n_rings, circle_vertices, 3) grid
+    n_rings = mesh.shape[0] // _circle
+    grid = mesh.reshape(n_rings, _circle, 3)
+
+    # Build wireframe: rings + longitudinal spines, None-separated segments
+    wx: list[float | None] = []
+    wy: list[float | None] = []
+    wz: list[float | None] = []
+
+    # Rings (close each ring by appending first point)
+    for i in range(n_rings):
+        ring = grid[i]  # (circle_vertices, 3)
+        wx += list(ring[:, 0]) + [ring[0, 0], None]
+        wy += list(ring[:, 1]) + [ring[0, 1], None]
+        wz += list(ring[:, 2]) + [ring[0, 2], None]
+
+    # Longitudinal spines
+    for j in range(_circle):
+        spine = grid[:, j]  # (n_rings, 3)
+        wx += list(spine[:, 0]) + [None]
+        wy += list(spine[:, 1]) + [None]
+        wz += list(spine[:, 2]) + [None]
 
     fig = go.Figure()
 
-    # --- GCS surface (semi-transparent) ---
-    fig.add_trace(
-        go.Mesh3d(
-            x=mesh[:, 0],
-            y=mesh[:, 1],
-            z=mesh[:, 2],
-            i=triangles[:, 0],
-            j=triangles[:, 1],
-            k=triangles[:, 2],
-            color="#457B9D",
-            opacity=0.25,
-            name="GCS mesh",
-            showscale=False,
-            hoverinfo="skip",
-        )
-    )
-
-    # --- Wireframe (sampled for performance) ---
-    step = max(1, len(triangles) // 300)
-    edge_x: list[float | None] = []
-    edge_y: list[float | None] = []
-    edge_z: list[float | None] = []
-    for tri_idx in triangles[::step]:
-        for a, b in [(tri_idx[0], tri_idx[1]), (tri_idx[1], tri_idx[2]), (tri_idx[2], tri_idx[0])]:
-            edge_x += [mesh[a, 0], mesh[b, 0], None]
-            edge_y += [mesh[a, 1], mesh[b, 1], None]
-            edge_z += [mesh[a, 2], mesh[b, 2], None]
-
     fig.add_trace(
         go.Scatter3d(
-            x=edge_x,
-            y=edge_y,
-            z=edge_z,
+            x=wx,
+            y=wy,
+            z=wz,
             mode="lines",
-            line=dict(color="#1D3557", width=0.5),
+            line=dict(color="#1D3557", width=1),
             name="GCS wireframe",
             hoverinfo="skip",
         )

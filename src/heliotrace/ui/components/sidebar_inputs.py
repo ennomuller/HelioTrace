@@ -58,7 +58,8 @@ def _fill_example() -> None:
 
 def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, bool]:
     """
-    Render the full sidebar and return ``(config, gcs_params, obs_df, run_clicked, gcs_params_entered)``.
+    Render the full sidebar and return
+    ``(config, gcs_params, obs_df, run_clicked, gcs_params_entered)``.
 
     - ``config``             — :class:`~heliotrace.models.schemas.SimulationConfig` with
                                every widget value.
@@ -182,7 +183,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             "Half-angle α [deg]",
             placeholder="[0.1, 89.9]",
             key="sb_gcs_half_angle",
-            help="GCS half-angle α: angular half-width of the CME shell [deg]. Valid: [0.1°, 89.9°].",
+            help=(
+                "GCS half-angle α: angular half-width of the CME shell [deg]. Valid: [0.1°, 89.9°]."
+            ),
         )
         gcs_kappa_str = c_kp.text_input(
             "Aspect ratio κ",
@@ -290,7 +293,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 "Drag coefficient c_d",
                 value="1.0",
                 key="sb_c_d",
-                help="Dimensionless drag coefficient (converges to ~1 beyond ~12 R☉, Cargill 2004).",
+                help=(
+                    "Dimensionless drag coefficient (converges to ~1 beyond ~12 R☉, Cargill 2004)."
+                ),
             )
             c_d: float = _parse_float(c_d_str, default=1.0) or 1.0
 
