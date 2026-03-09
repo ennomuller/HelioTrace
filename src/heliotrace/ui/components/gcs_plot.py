@@ -87,7 +87,7 @@ def build_gcs_figure(
             y=wy,
             z=wz,
             mode="lines",
-            line=dict(color="#1D3557", width=1),
+            line=dict(color="#1f77b4", width=1),  # tab10 blue
             name="GCS wireframe",
             hoverinfo="skip",
         )
@@ -101,7 +101,7 @@ def build_gcs_figure(
                 y=[0, 0],
                 z=[0, projection_ratio],
                 mode="lines",
-                line=dict(color="#A8DADC", width=4),
+                line=dict(color="#2ca02c", width=4),  # tab10 green
                 name=f"Sun → {target_name} (inside CME)",
             )
         )
@@ -111,7 +111,7 @@ def build_gcs_figure(
                 y=[0, 0],
                 z=[projection_ratio, 1.0],
                 mode="lines",
-                line=dict(color="#E63946", width=4),
+                line=dict(color="#d62728", width=4),  # tab10 red
                 name=f"Sun → {target_name} (outside CME)",
             )
         )
@@ -121,7 +121,7 @@ def build_gcs_figure(
                 y=[0],
                 z=[projection_ratio],
                 mode="markers",
-                marker=dict(color="#E63946", size=8, symbol="circle"),
+                marker=dict(color="#d62728", size=8, symbol="circle"),  # tab10 red
                 name=f"Projection point ({target_name}): {projection_ratio:.4f}",
             )
         )
@@ -132,7 +132,7 @@ def build_gcs_figure(
                 y=[0, 0],
                 z=[0, 1.0],
                 mode="lines",
-                line=dict(color="#aaa", width=3, dash="dash"),
+                line=dict(color="#7f7f7f", width=3, dash="dash"),  # tab10 gray
                 name=f"{target_name} direction (MISS)",
             )
         )

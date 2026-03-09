@@ -256,11 +256,11 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         st.subheader("🪂 Drag Parameters")
 
         st.markdown("**DBM only**")
+        st.session_state.setdefault("sb_w", 390)
         w = st.slider(
             "Solar wind speed w [km/s]",
             min_value=250,
             max_value=700,
-            value=390,
             key="sb_w",
             step=10,
             help="Constant ambient solar wind speed used by the standard DBM.",
@@ -274,11 +274,11 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             horizontal=True,
             help="Venzmer & Bothmer (2018) background wind profile.",
         )
+        st.session_state.setdefault("sb_ssn", 100)
         ssn = st.slider(
             "Smoothed SSN",
             min_value=0,
             max_value=300,
-            value=100,
             key="sb_ssn",
             step=1,
             help="Monthly smoothed total sunspot number for the MODBM density profile.",
