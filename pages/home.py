@@ -11,11 +11,10 @@ st.title("☀️ HelioTrace")
 st.subheader("Interactive CME Propagation Explorer")
 st.markdown(
     """
-    **HelioTrace** is an interactive research tool for modelling the propagation of
-    **Interplanetary Coronal Mass Ejections (ICMEs)** through the inner heliosphere.
-    Built with Python & Streamlit, it combines 3D geometric fitting of coronagraph
-    observations with physics-based drag models to predict ICME arrival times and
-    impact speeds at any heliospheric target.
+    **HelioTrace** is an interactive application for **space weather analysis**.
+    It streamlines the **workflow** from coronagraph observations to impact
+    forecasts of **Coronal Mass Ejections (CMEs)**, by integrating 3D GCS
+    geometric reconstruction with drag-based physics modelling.
     """
 )
 
@@ -26,39 +25,37 @@ st.divider()
 # ---------------------------------------------------------------------------
 st.subheader("🚀 Quick Start")
 st.markdown(
-    """
-    1. **📡 GCS Observations** — Enter your observed GCS height-time measurements
-       in the interactive data table. Inspect the Height-Time fit and the live 3D
-       GCS geometry visualisation.
-    2. **🌌 ICME Propagation** — Configure the target body and drag model parameters
-       in the sidebar, then press **▶ Run Simulation** to compute DBM and MoDBM
-       trajectories and arrival predictions.
-    """
+    "📈 **Enter GCS and Height-Time Data** ➢ "
+    "📐 **Inspect 3D Shape and Speed Fit** ➢ "
+    "🎯 **Set Target & Drag Parameters** ➢ "
+    "▶️ **Run Simulation** ➢ "
+    "📊 **Get Arrival Forecast** "
 )
+st.info("Hit **⚡ Fill with example** to explore the full workflow with real CME data instantly!")
 
 st.divider()
 
 # ---------------------------------------------------------------------------
-# Capabilities
+# Features
 # ---------------------------------------------------------------------------
-st.subheader("✨ Capabilities")
+st.subheader("✨ Features")
 col1, col2 = st.columns(2)
 with col1:
     st.markdown(
         """
-        - 📋 **Interactive GCS data table** — enter multi-epoch coronagraph measurements
-        - 📐 **Linear Height-Time fit** — weighted least-squares with velocity & error annotation
-        - 🌐 **Live 3D GCS geometry** — Plotly Mesh3d visualisation of the flux-rope shell
-        - 🎯 **Geometric hit/miss check** — projection ratio toward any heliospheric target
+        - 🌐 **Interactive 3D Reconstructions** — Turn reconstruction data into interactive 3D flux-rope visualizations.
+        - 🎯 **Geometric Hit vs. Miss Check** — Quickly distinguish between target-impacting events and off-target misses.
+        - 📐 **Kinematic Fitting** — Extract initial CME apex velocities from height-time profiles.
+        - 🏹 **Target-Directed Kinematics** — Auto-extract the Earthward/target-directed velocity.
         """
     )
 with col2:
     st.markdown(
         """
-        - 🌬️ **DBM** — analytic Drag-Based Model with configurable solar wind speed
-        - 🔬 **MoDBM** — Modified DBM with distance/SSN-dependent density profile (solved numerically)
-        - 📊 **Comparison plots** — side-by-side Distance-vs-Time and Velocity-vs-Time
-        - 🕐 **Arrival prediction** — transit time, impact speed, and ΔToA vs observation
+        - 🌊 **Drag-Based Model (DBM)** — Simulate ICME propagation with the field-standard, highly cited benchmark.
+        - 🔬 **Physics-Enhanced MoDBM** — Solve ICME propagation numerically, featuring variable solar wind conditions.
+        - 📊 **Trajectory Analytics** — Visually track and compare ICME kinematics side-by-side for both models.
+        - 🕐 **Space Weather Forecasting** — Forecast ToA, transit time, and impact speed to help assess risks.
         """
     )
 
@@ -70,23 +67,46 @@ st.divider()
 st.subheader("🔬 Science Background")
 st.markdown(
     """
-    **CMEs** are large-scale eruptions of magnetised plasma from the Sun's corona.
-    When directed toward Earth or other targets in the inner heliosphere, their arrival
-    can trigger geomagnetic storms and disrupt critical infrastructure — making accurate
-    transit-time forecasting an active area of space weather research.
+    Coronal Mass Ejections (CMEs) are explosive eruptions of magnetised plasma from
+    the Sun's corona. When directed at Earth, ICMEs (their interplanetary counterpart)
+    can trigger severe geomagnetic storms. To forecast these impacts for Earth and
+    other targets in the inner heliosphere, HelioTrace simulates the ICME's journey
+    using a four-step physics workflow:
 
-    HelioTrace chains three physics components:
-
-    | Component | Model | What it enables in the app |
-    |---|---|---|
-    | **3D CME geometry** | GCS — Graduated Cylindrical Shell ([Thernisien et al. 2006](https://doi.org/10.1086/508254)) | Live 3D mesh, projection ratio, initial velocity from multi-epoch observations |
-    | **Constant-drag propagation** | DBM ([Vršnak et al. 2013](https://doi.org/10.1007/s11207-012-0035-4)) | Fast analytic transit-time estimate with a single solar wind speed parameter |
-    | **Physics-enhanced propagation** | MoDBM (density profile from [Venzmer & Bothmer 2018](https://doi.org/10.1051/0004-6361/201731831)) | Numerically integrated solution with distance- and SSN-dependent solar wind |
-
-    The **target-directed velocity** ($v_\\text{target}$) is derived from the apex velocity
-    by self-similar expansion scaling: $v_\\text{target} = v_\\text{apex} \\cdot (h_\\text{target}/h_\\text{apex})$,
-    where the height ratio is extracted from the GCS geometry.
+    1. **📷 3D Reconstruction**: A true 3D model of the CME, optimally obtained from
+       multi-viewpoint satellite data, is used to eliminate 2D projection errors common
+       in traditional forecasting methods.
+    2. **📈 Kinematic Tracking**: By tracking the CME's front (or "apex") height across
+       sequential images, its initial expansion speed radially outward from the Sun's
+       corona can be approximated.
+    3. **🎯 Target-Directed Velocity**: Assuming the CME expands self-similarly, the
+       precise velocity component directed at the chosen target (e.g. Earth) can be
+       extracted using a 3D geometric ratio.
+    4. **🌊 Interplanetary Propagation**: In interplanetary space, the ambient solar wind
+       acts as a drag force. Thus, fast ICMEs brake, while slow ones accelerate. This drag
+       is modelled to forecast accurate arrival times and speeds.
     """
+)
+
+st.markdown("#### Core Physics Frameworks")
+st.markdown("HelioTrace is built on heliophysics research, utilizing the following frameworks:")
+st.markdown(
+    "| Component | Scientific Model | What it enables |\n"
+    "| :--- | :--- | :--- |\n"
+    "| **3D CME Shape** "
+    "| Graduated Cylindrical Shell (GCS) – "
+    "[Thernisien et al. (2006)](https://doi.org/10.1086/508254) "
+    "| 3D flux-rope modelling to extract physical dimensions and kinematics. |\n"
+    "| **Constant-Drag Force** "
+    "| Drag-Based Model (DBM) – "
+    "[Vršnak et al. (2013)](https://doi.org/10.1007/s11207-012-0035-4) "
+    "| Analytical equation of motion featuring a constant solar wind speed estimate. |\n"
+    "| **Variable-Drag Force** "
+    "| Modified DBM (MoDBM) – "
+    "[Müller (2025)](https://doi.org/10.5281/zenodo.18788366), "
+    "solar wind profiles from "
+    "[Venzmer & Bothmer (2018)](https://doi.org/10.1051/0004-6361/201731831) "
+    "| Numerically integrated solution with distance- and SSN-dependent solar wind models. |"
 )
 
 st.divider()
@@ -107,11 +127,10 @@ with st.expander("📚 Acknowledgments & Credits", expanded=False):
 
         #### Scientific Models & Citations
         - **GCS Model**: Thernisien, A. F. R., Howard, R. A., & Vourlidas, A. (2006).
-          *Modeling of Flux Rope Coronal Mass Ejections.* ApJ, 652, 763.
-          [doi:10.1086/508254](https://doi.org/10.1086/508254)
-        - **DBM**: Vršnak, B. et al. (2013). *Propagation of Interplanetary CMEs.*
-          Solar Phys, 285, 295–315. [doi:10.1007/s11207-012-0035-4](https://doi.org/10.1007/s11207-012-0035-4)
-        - **MoDBM solar wind profile**: Venzmer, M. S. & Bothmer, V. (2018).
+        ApJ, 652, 763. [doi:10.1086/508254](https://doi.org/10.1086/508254)
+        - **DBM**: Vršnak, B. et al. (2013). Solar Phys, 285, 295–315.
+        [doi:10.1007/s11207-012-0035-4](https://doi.org/10.1007/s11207-012-0035-4)
+        - **MoDBM solar wind speed/density profiles**: Venzmer, M. S. & Bothmer, V. (2018).
           A&A, 611, A36. [doi:10.1051/0004-6361/201731831](https://doi.org/10.1051/0004-6361/201731831)
 
         #### Software
