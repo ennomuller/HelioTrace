@@ -14,7 +14,7 @@ Developed based on research from a Master's Thesis — see [Related Publication]
 - 🎯 **Geometric Hit vs. Miss Check** — Quickly distinguish between target-impacting events and off-target misses.
 - 📐 **Kinematic Fitting** — Extract initial CME apex velocities from height-time profiles.
 - 🎯 **Target-Directed Kinematics** — Auto-extract the Earthward/target-directed velocity.
-- 🌬️ **Drag-Based Model (DBM)** — Simulate ICME propagation with the field-standard, highly cited benchmark.
+- 🌊 **Drag-Based Model (DBM)** — Simulate ICME propagation with the field-standard, highly cited benchmark.
 - 🔬 **Physics-Enhanced MoDBM** — Solve ICME propagation numerically, featuring variable solar wind conditions.
 - 📊 **Trajectory Analytics** — Visually track and compare ICME kinematics side-by-side for both models.
 - 🕐 **Space Weather Forecasting** — Forecast ToA, transit time, and impact speed to help assess risks.
@@ -93,10 +93,10 @@ can trigger severe geomagnetic storms. To forecast these impacts for Earth and
 other targets in the inner heliosphere, HelioTrace simulates the ICME's journey
 using a four-step physics workflow:
 
-1. **🛰️ 3D Reconstruction**: A true 3D model of the CME, optimally obtained from multi-viewpoint satellite data, is used to eliminate 2D projection errors common in traditional forecasting methods.
+1. **📷 3D Reconstruction**: A true 3D model of the CME, optimally obtained from multi-viewpoint satellite data, is used to eliminate 2D projection errors common in traditional forecasting methods.
 2. **📈 Kinematic Tracking**: By tracking the CME's front (or "apex") height across sequential images,  its initial expansion speed radially outward from the Sun's corona can be approximated.
 3. **🎯 Target-Directed Velocity**: Assuming the CME expands self-similarly, the precise velocity component directed at the chosen target (e.g. Earth) can be extracted using a 3D geometric ratio.
-4. **🌬️ Interplanetary Propagation**: In interplanetary space, the ambient solar wind acts as a drag force. Thus, fast ICMEs brake, while slow ones accelerate. This drag is modelled to forecast accurate arrival times and speeds.
+4. **🌊 Interplanetary Propagation**: In interplanetary space, the ambient solar wind acts as a drag force. Thus, fast ICMEs brake, while slow ones accelerate. This drag is modelled to forecast accurate arrival times and speeds.
 
 ### Core Physics Frameworks
 
