@@ -266,7 +266,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             help="Constant ambient solar wind speed used by the standard DBM.",
         )
 
-        st.markdown("**MODBM only**")
+        st.markdown("**MoDBM only**")
         w_type = st.radio(
             "Solar wind regime",
             options=["slow", "fast"],
@@ -281,7 +281,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             max_value=300,
             key="sb_ssn",
             step=1,
-            help="Monthly smoothed total sunspot number for the MODBM density profile.",
+            help="Monthly smoothed total sunspot number for the MoDBM density profile.",
         )
 
         # ------------------------------------------------------------------ #

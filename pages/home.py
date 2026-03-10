@@ -31,7 +31,7 @@ st.markdown(
        in the interactive data table. Inspect the Height-Time fit and the live 3D
        GCS geometry visualisation.
     2. **🌌 ICME Propagation** — Configure the target body and drag model parameters
-       in the sidebar, then press **▶ Run Simulation** to compute DBM and MODBM
+       in the sidebar, then press **▶ Run Simulation** to compute DBM and MoDBM
        trajectories and arrival predictions.
     """
 )
@@ -56,7 +56,7 @@ with col2:
     st.markdown(
         """
         - 🌬️ **DBM** — analytic Drag-Based Model with configurable solar wind speed
-        - 🔬 **MODBM** — Modified DBM with distance/SSN-dependent density profile (solved numerically)
+        - 🔬 **MoDBM** — Modified DBM with distance/SSN-dependent density profile (solved numerically)
         - 📊 **Comparison plots** — side-by-side Distance-vs-Time and Velocity-vs-Time
         - 🕐 **Arrival prediction** — transit time, impact speed, and ΔToA vs observation
         """
@@ -81,7 +81,7 @@ st.markdown(
     |---|---|---|
     | **3D CME geometry** | GCS — Graduated Cylindrical Shell ([Thernisien et al. 2006](https://doi.org/10.1086/508254)) | Live 3D mesh, projection ratio, initial velocity from multi-epoch observations |
     | **Constant-drag propagation** | DBM ([Vršnak et al. 2013](https://doi.org/10.1007/s11207-012-0035-4)) | Fast analytic transit-time estimate with a single solar wind speed parameter |
-    | **Physics-enhanced propagation** | MODBM (density profile from [Venzmer & Bothmer 2018](https://doi.org/10.1051/0004-6361/201731831)) | Numerically integrated solution with distance- and SSN-dependent solar wind |
+    | **Physics-enhanced propagation** | MoDBM (density profile from [Venzmer & Bothmer 2018](https://doi.org/10.1051/0004-6361/201731831)) | Numerically integrated solution with distance- and SSN-dependent solar wind |
 
     The **target-directed velocity** ($v_\\text{target}$) is derived from the apex velocity
     by self-similar expansion scaling: $v_\\text{target} = v_\\text{apex} \\cdot (h_\\text{target}/h_\\text{apex})$,
@@ -111,7 +111,7 @@ with st.expander("📚 Acknowledgments & Credits", expanded=False):
           [doi:10.1086/508254](https://doi.org/10.1086/508254)
         - **DBM**: Vršnak, B. et al. (2013). *Propagation of Interplanetary CMEs.*
           Solar Phys, 285, 295–315. [doi:10.1007/s11207-012-0035-4](https://doi.org/10.1007/s11207-012-0035-4)
-        - **MODBM solar wind profile**: Venzmer, M. S. & Bothmer, V. (2018).
+        - **MoDBM solar wind profile**: Venzmer, M. S. & Bothmer, V. (2018).
           A&A, 611, A36. [doi:10.1051/0004-6361/201731831](https://doi.org/10.1051/0004-6361/201731831)
 
         #### Software

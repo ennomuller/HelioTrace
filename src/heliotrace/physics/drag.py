@@ -1,11 +1,11 @@
 """
-Drag-Based Model (DBM) and Modified DBM (MODBM) physics engine.
+Drag-Based Model (DBM) and Modified DBM (MoDBM) physics engine.
 
 References
 ----------
 - Vršnak et al. (2013) — DBM formulation
 - Leblanc et al. (1998) — DBM solar wind density profile
-- Venzmer & Bothmer (2018) — MODBM solar wind density and speed profiles
+- Venzmer & Bothmer (2018) — MoDBM solar wind density and speed profiles
 - Pluta (2018) — CME mass / cross-section empirical formulae
 - Cargill (2004) — drag coefficient convergence
 """
@@ -173,13 +173,13 @@ def simulate_equation_of_motion_DBM(
 
 
 # ---------------------------------------------------------------------------
-# MODBM ambient conditions (Venzmer & Bothmer 2018)
+# MoDBM ambient conditions (Venzmer & Bothmer 2018)
 # ---------------------------------------------------------------------------
 
 
 def get_ambient_solar_wind_density_MODBM(r_km: float, ssn: float) -> float:
     """
-    Position-dependent solar wind density for the MODBM (Venzmer & Bothmer 2018).
+    Position-dependent solar wind density for the MoDBM (Venzmer & Bothmer 2018).
 
     :param r_km: Radial distance from the Sun [km].
     :param ssn:  Monthly smoothed sunspot number (dimensionless).
@@ -199,7 +199,7 @@ def get_varying_drag_parameter_MODBM(
     c_d: float = 1.0,
 ) -> float:
     """
-    Position-dependent drag parameter γ(r) for the MODBM.
+    Position-dependent drag parameter γ(r) for the MoDBM.
 
     All arguments are plain floats (required by ``scipy.integrate.solve_ivp``).
 
@@ -218,7 +218,7 @@ def get_varying_drag_parameter_MODBM(
 
 def get_ambient_solar_wind_speed_MODBM(r_km: float, w_type: str) -> float:
     """
-    Radially varying solar wind speed for the MODBM (Venzmer & Bothmer 2018).
+    Radially varying solar wind speed for the MoDBM (Venzmer & Bothmer 2018).
 
     :param r_km:   Radial distance [km].
     :param w_type: Wind regime — ``'slow'`` (363 km/s at 1 AU) or ``'fast'`` (483 km/s).
@@ -235,7 +235,7 @@ def get_ambient_solar_wind_speed_MODBM(r_km: float, w_type: str) -> float:
 
 
 # ---------------------------------------------------------------------------
-# MODBM ODE and integrator
+# MoDBM ODE and integrator
 # ---------------------------------------------------------------------------
 
 
@@ -249,7 +249,7 @@ def _dr_dt_MODBM(
     ssn: float,
     c_d: float,
 ) -> list[float]:
-    """Two-equation MODBM system of ODEs (plain floats for scipy)."""
+    """Two-equation MoDBM system of ODEs (plain floats for scipy)."""
     r, v = S
     gamma = get_varying_drag_parameter_MODBM(r, alpha_rad, kappa, M_kg, ssn, c_d)
     w = get_ambient_solar_wind_speed_MODBM(r, w_type)
@@ -269,7 +269,7 @@ def simulate_equation_of_motion_MODBM(
     c_d: float = 1.0,
 ) -> OdeSolution:
     """
-    Integrate the MODBM equation of motion.
+    Integrate the MoDBM equation of motion.
 
     :param t_span:  Integration window ``(t_start, t_end)`` [s].
     :param r0:      Initial CME distance [length Quantity].
@@ -293,7 +293,7 @@ def simulate_equation_of_motion_MODBM(
     M_kg = M.to(u.kg).value
 
     logger.debug(
-        "MODBM ODE: r0=%.2f km, v0=%.1f km/s, w_type=%s, ssn=%.0f",
+        "MoDBM ODE: r0=%.2f km, v0=%.1f km/s, w_type=%s, ssn=%.0f",
         r0_km,
         v0_kms,
         w_type,

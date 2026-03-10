@@ -121,7 +121,7 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
     1. H-T fit → apex velocity and initial conditions.
     2. Geometric projection → target-directed speed v₀.
     3. DBM ODE integration.
-    4. MODBM ODE integration.
+    4. MoDBM ODE integration.
     5. Interpolate arrival time and impact speed at target distance.
 
     :param df:     GCS observation table (from ``st.data_editor``).
@@ -218,10 +218,10 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
             arrival_MODBM = derived.t0 + pd.Timedelta(seconds=elapsed_MODBM)
             series_MODBM = _sample_solution(sol_MODBM, elapsed_MODBM)
         except (ValueError, Exception) as exc:
-            logger.warning("MODBM arrival extraction failed: %s", exc)
+            logger.warning("MoDBM arrival extraction failed: %s", exc)
 
     logger.info(
-        "Simulation complete. DBM=%.1f h, MODBM=%.1f h",
+        "Simulation complete. DBM=%.1f h, MoDBM=%.1f h",
         elapsed_DBM / 3600.0 if elapsed_DBM else float("nan"),
         elapsed_MODBM / 3600.0 if elapsed_MODBM else float("nan"),
     )

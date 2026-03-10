@@ -53,7 +53,7 @@ class SimulationConfig:
     # DBM parameters
     w: float  # Ambient solar wind speed [km/s]
 
-    # MODBM parameters
+    # MoDBM parameters
     w_type: str  # 'slow' | 'fast'
     ssn: float  # Monthly smoothed total sunspot number
 
@@ -115,7 +115,7 @@ class SimulationResults:
     velocity_arrival_DBM_kms: Optional[float]  # Impact speed [km/s]
     arrival_time_DBM: Optional[datetime]
 
-    # MODBM
+    # MoDBM
     modbm_series: Optional[PropagationSeries]
     elapsed_time_MODBM_h: Optional[float]
     velocity_arrival_MODBM_kms: Optional[float]

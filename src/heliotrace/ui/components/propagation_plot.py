@@ -1,5 +1,5 @@
 """
-Plotly propagation result charts comparing DBM vs MODBM.
+Plotly propagation result charts comparing DBM vs MoDBM.
 
 Two side-by-side panels: Distance vs. Time and Velocity vs. Time.
 """
@@ -146,7 +146,7 @@ def build_propagation_comparison_figure(
     target_distance_au: float,
 ) -> go.Figure:
     """
-    Build a two-panel Plotly figure comparing DBM and MODBM propagation.
+    Build a two-panel Plotly figure comparing DBM and MoDBM propagation.
 
     - **Left panel**: Distance from Sun [R_sun] vs. Propagation Time [h]
     - **Right panel**: Radial Velocity [km/s] vs. Propagation Time [h]
@@ -208,7 +208,7 @@ def build_propagation_comparison_figure(
         )
 
     _add_model(results.dbm_series, results.elapsed_time_DBM_h, "DBM", _COLORS["DBM"])
-    _add_model(results.modbm_series, results.elapsed_time_MODBM_h, "MODBM", _COLORS["MODBM"])
+    _add_model(results.modbm_series, results.elapsed_time_MODBM_h, "MoDBM", _COLORS["MODBM"])
 
     # Target reference line in distance panel — annotation centered above the line
     # Col 1 occupies paper x ≈ [0, 0.45]; center ≈ 0.225 with horizontal_spacing=0.10
@@ -261,7 +261,7 @@ def build_propagation_comparison_figure(
             line=dict(color=_COLORS["MODBM"], width=1.5, dash="dash"),
             row=1,
             col=2,
-            annotation_text="MODBM arrival",
+            annotation_text="MoDBM arrival",
             annotation_position=modbm_pos,
             annotation_font_size=13,
             annotation_font_color=_COLORS["MODBM"],

@@ -103,7 +103,7 @@ st.title("🚀 Propagation Simulator")
 st.caption(
     f"Event: **{config.event_str}** | "
     f"Target: **{config.target.name}** ({config.target.distance:.2f} AU) | "
-    f"Models: DBM · MODBM"
+    f"Models: DBM · MoDBM"
 )
 
 # ---------------------------------------------------------------------------
@@ -240,7 +240,7 @@ with tab1:
 with tab2:
     st.subheader("Drag-Based Propagation")
     st.markdown(
-        "Press **▶ Run Simulation** in the sidebar to compute DBM and MODBM trajectories "
+        "Press **▶ Run Simulation** in the sidebar to compute DBM and MoDBM trajectories "
         "and arrival predictions at the selected target."
     )
 
@@ -251,7 +251,7 @@ with tab2:
         if clean_df is None:
             st.warning("⚠️ Add at least 2 observations in the sidebar before running.")
         else:
-            with st.spinner("Running DBM & MODBM simulations…"):
+            with st.spinner("Running DBM & MoDBM simulations…"):
                 try:
                     results = run_full_simulation(clean_df, config)
                     st.session_state[KEY_SIM_RESULTS] = results
@@ -445,7 +445,7 @@ with tab2:
         st.markdown(
             '<div style="text-align:center;font-size:1.2rem;font-weight:700;color:#ff7f0e;'
             "border:2px solid #ff7f0e;background:#fff3e6;border-radius:6px;"
-            'padding:5px 0;margin:0 0 10px 0;">MODBM</div>',
+            'padding:5px 0;margin:0 0 10px 0;">MoDBM</div>',
             unsafe_allow_html=True,
         )
         if results.arrival_time_MODBM:
@@ -473,9 +473,9 @@ with tab2:
                 unsafe_allow_html=True,
             )
         else:
-            st.warning("MODBM did not reach the target within the integration window.")
+            st.warning("MoDBM did not reach the target within the integration window.")
 
-        with st.expander("Inputs used — MODBM", expanded=False):
+        with st.expander("Inputs used — MoDBM", expanded=False):
             d = results.derived
             _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
             _mass = (
@@ -545,14 +545,14 @@ with tab2:
             ew1.metric(
                 "Wind regime",
                 stored_config.w_type,
-                help="Background solar wind regime used by the MODBM density profile "
+                help="Background solar wind regime used by the MoDBM density profile "
                 "(Venzmer & Bothmer 2018). 'slow' ≈ 300–400 km/s; 'fast' ≈ 600–800 km/s.",
             )
             ew2.metric(
                 "SSN",
                 f"{stored_config.ssn:.0f}",
                 help="Monthly smoothed total sunspot number. Controls the amplitude of the "
-                "structured solar wind density profile in MODBM (higher SSN = denser wind "
+                "structured solar wind density profile in MoDBM (higher SSN = denser wind "
                 "near solar maximum).",
             )
             st.metric(
@@ -574,7 +574,7 @@ with tab2:
                 series=results.modbm_series,
                 elapsed_h=results.elapsed_time_MODBM_h,
                 target_distance_au=stored_config.target.distance,
-                label="MODBM",
+                label="MoDBM",
                 color=PLOT_COLORS["MODBM"],
             )
             st.plotly_chart(modbm_fig, use_container_width=True)
