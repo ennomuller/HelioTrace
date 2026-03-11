@@ -146,8 +146,7 @@ def test_full_simulation_dbm_transit(reference_gcs_df: pd.DataFrame) -> None:
     from heliotrace.simulation.runner import run_full_simulation
 
     config = SimulationConfig(
-        event_str="20231028",
-        cme_launch_day=datetime(2023, 10, 28),
+        event_str="Halo CME · 2023-10-28",
         target=TargetConfig(name="Earth", lon=0.0, lat=0.0, distance=1.0),
         height_error=0.25,
         w=390.0,

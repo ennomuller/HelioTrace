@@ -212,6 +212,7 @@ with tab1:
             chi_squared=derived.fit_chi_squared,
             v_apex_kms=derived.v_apex_kms,
             v_apex_error_kms=derived.v_apex_error_kms,
+            event_label=config.event_str,
         )
         st.plotly_chart(ht_fig, use_container_width=True)
 

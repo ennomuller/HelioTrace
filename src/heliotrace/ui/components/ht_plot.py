@@ -18,6 +18,7 @@ def build_ht_figure(
     chi_squared: float,
     v_apex_kms: float,
     v_apex_error_kms: float,
+    event_label: str = "",
 ) -> go.Figure:
     """
     Build a Plotly Height-Time figure with error bars and a linear fit line.
@@ -102,5 +103,8 @@ def build_ht_figure(
         showgrid=True, gridcolor="#eee", tickformat="%d-%m\n%H:%M", tickfont=dict(size=12)
     )
     fig.update_yaxes(showgrid=True, gridcolor="#eee", tickfont=dict(size=12))
+
+    if event_label:
+        fig.update_layout(title=dict(text=event_label, x=0.5))
 
     return fig

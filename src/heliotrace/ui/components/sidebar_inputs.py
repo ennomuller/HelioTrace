@@ -20,7 +20,7 @@ from heliotrace.models.schemas import GCSParams, SimulationConfig, TargetConfig
 # Example event: 2023-10-28 Halloween CME
 # ---------------------------------------------------------------------------
 _EXAMPLE: dict = {
-    "sb_event_str": "20231028",
+    "sb_event_str": "Halo CME · 2023-10-28",
     "sb_gcs_lon": "5.5",
     "sb_gcs_lat": "-20.1",
     "sb_gcs_tilt": "-7.5",
@@ -91,18 +91,12 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         st.subheader("📅 Event Info")
 
         event_str = st.text_input(
-            "Event Date (YYYYMMDD)",
+            "Event Label",
             key="sb_event_str",
-            placeholder="e.g. 20231028",
-            help="Used as an identifier in titles and file names.",
+            placeholder="e.g. Halo CME · 2023-10-28",
+            help="Free-form label used in plot titles and descriptions (max 40 characters).",
         )
-        try:
-            cme_launch_day = datetime.strptime(event_str, "%Y%m%d")
-            st.caption(f"📆 {cme_launch_day.strftime('%d %B %Y')}")
-        except ValueError:
-            if event_str.strip():
-                st.warning("Invalid date format — expected YYYYMMDD.")
-            cme_launch_day = datetime(2023, 10, 28)
+        event_str_clean = (event_str or "").strip()[:40] or "unknown"
 
         st.divider()
         # ------------------------------------------------------------------ #
@@ -349,8 +343,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         )
 
     config = SimulationConfig(
-        event_str=event_str or "unknown",
-        cme_launch_day=cme_launch_day,
+        event_str=event_str_clean,
         target=target,
         height_error=float(height_error or 0.25),
         w=float(w or 390),

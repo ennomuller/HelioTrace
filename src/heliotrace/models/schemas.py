@@ -43,8 +43,7 @@ class GCSParams:
 class SimulationConfig:
     """All user-controlled inputs for one simulation run."""
 
-    event_str: str  # YYYYMMDD label for display/file naming
-    cme_launch_day: datetime  # Parsed from event_str
+    event_str: str  # Human-readable event label for display, titles, and filenames (max 100 chars)
     target: TargetConfig
 
     # GCS uncertainty
