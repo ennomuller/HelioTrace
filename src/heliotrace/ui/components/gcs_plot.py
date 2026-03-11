@@ -101,7 +101,7 @@ def build_gcs_figure(
                 y=[0, 0],
                 z=[0, projection_ratio],
                 mode="lines",
-                line=dict(color="#2ca02c", width=4),  # tab10 green
+                line=dict(color="#ff7f0e", width=5),  # tab10 green
                 name=f"Sun → {target_name} (inside CME)",
             )
         )
@@ -111,7 +111,7 @@ def build_gcs_figure(
                 y=[0, 0],
                 z=[projection_ratio, 1.0],
                 mode="lines",
-                line=dict(color="#d62728", width=4),  # tab10 red
+                line=dict(color="#d62728", width=5),  # tab10 red
                 name=f"Sun → {target_name} (outside CME)",
             )
         )
