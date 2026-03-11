@@ -64,7 +64,7 @@ def test_direct_hit_ratio_near_unity(cme_lat_deg: float, cme_lon_deg: float) -> 
     [(15, 0.2), (30, 0.42), (45, 0.6)],
 )
 def test_direct_hit_ratio_bounded(alpha_deg: float, kappa: float) -> None:
-    """Return value is always in [0, 1] for a direct (on-axis) hit."""
+    """Return value is always in [0.99, 1] for a direct (on-axis) hit."""
     alpha = alpha_deg * u.deg
     ratio = get_target_apex_ratio(
         alpha,
@@ -76,8 +76,8 @@ def test_direct_hit_ratio_bounded(alpha_deg: float, kappa: float) -> None:
         target_lon=_CME_LON,
         res=_RES,
     )
-    assert 0.0 <= ratio <= 1.0, (
-        f"alpha={alpha_deg}°, kappa={kappa}: ratio={ratio:.6f} outside [0, 1]"
+    assert 0.99 <= ratio <= 1.0, (
+        f"alpha={alpha_deg}°, kappa={kappa}: ratio={ratio:.6f} outside [0.99, 1]"
     )
 
 

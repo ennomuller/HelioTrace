@@ -116,16 +116,35 @@ def test_negative_slope_recovery() -> None:
     [(5, 0.2), (10, 1.0), (20, 0.5), (50, 2.0)],
 )
 def test_weighted_slope_error_closed_form(N: int, sigma: float) -> None:
-    """WLS slope_error matches sigma/sqrt(Sxx) to 1e-10 relative for uniform x=1..N."""
+    """WLS slope_error matches both closed-form oracles to 1e-10 relative for uniform x=1..N.
+
+    Two independent analytic references are checked:
+      - general:  sigma / sqrt(sum((x - mean(x))^2))
+      - uniform:  sigma * sqrt(12 / (N*(N^2-1)))   [from Sxx = N(N^2-1)/12]
+    Both must agree with each other and with the fit result.
+    """
     x = np.arange(1, N + 1, dtype=float)
     y = _SLOPE * x + _INTERCEPT  # perfect data — chi_squared = 0
     result = perform_linear_fit(x, y, y_error=sigma)
-    expected = _wls_slope_error(sigma, x)
-    rel_err = abs(result["slope_error"] - expected) / expected
-    assert rel_err < 1e-10, (
-        f"N={N}, sigma={sigma}: slope_error={result['slope_error']:.8e}, "
-        f"expected {expected:.8e}, rel_err={rel_err:.3e}"
+
+    expected_general = _wls_slope_error(sigma, x)
+    expected_uniform = _wls_slope_error_uniform(sigma, N)
+
+    # The two analytic formulas must be equivalent (catches a bug in either helper).
+    oracle_rel_diff = abs(expected_general - expected_uniform) / expected_general
+    assert oracle_rel_diff < 1e-14, (
+        f"N={N}, sigma={sigma}: oracle mismatch — general={expected_general:.8e}, "
+        f"uniform={expected_uniform:.8e}, rel_diff={oracle_rel_diff:.3e}"
     )
+
+    # Fit result must match both oracles.
+    for label, expected in [("general", expected_general), ("uniform", expected_uniform)]:
+        rel_err = abs(result["slope_error"] - expected) / expected
+        assert rel_err < 1e-10, (
+            f"N={N}, sigma={sigma}, oracle={label}: "
+            f"slope_error={result['slope_error']:.8e}, "
+            f"expected={expected:.8e}, rel_err={rel_err:.3e}"
+        )
 
 
 def test_weighted_slope_error_monotone_decreasing() -> None:
@@ -146,13 +165,12 @@ def test_weighted_slope_error_monotone_decreasing() -> None:
 
 def test_chi_squared_formula_weighted() -> None:
     """Weighted chi_squared equals sum((y - model)^2 / sigma^2) using fitted params."""
-    sigma = 0.2
     perturbations = np.array([0.1, -0.2, 0.15, -0.05, 0.1])
     y_noisy = _Y_REF + perturbations
-    result = perform_linear_fit(_X_REF, y_noisy, y_error=sigma)
+    result = perform_linear_fit(_X_REF, y_noisy, y_error=_SIGMA)
     slope_fit = result["slope"]
     intercept_fit = result["intercept"]
-    residuals = (y_noisy - _linear(_X_REF, slope_fit, intercept_fit)) / sigma
+    residuals = (y_noisy - _linear(_X_REF, slope_fit, intercept_fit)) / _SIGMA
     chi2_manual = float(np.sum(residuals**2))
     rel_err = abs(result["chi_squared"] - chi2_manual) / max(abs(chi2_manual), 1e-15)
     assert rel_err < 1e-10, (
@@ -181,7 +199,9 @@ def test_initial_guess_recovers_correct_params() -> None:
 
 @pytest.mark.parametrize("sigma", [0.1, 1.0, 10.0])
 def test_weighted_unweighted_agree_for_perfect_data(sigma: float) -> None:
-    """For perfect linear data, weighted and unweighted calls return identical slope and intercept."""
+    """
+    For perfect linear data, weighted and unweighted calls return identical slope and intercept.
+    """
     r_unweighted = perform_linear_fit(_X_REF, _Y_REF)
     r_weighted = perform_linear_fit(_X_REF, _Y_REF, y_error=sigma)
     assert abs(r_weighted["slope"] - r_unweighted["slope"]) / _SLOPE < 1e-12, (
