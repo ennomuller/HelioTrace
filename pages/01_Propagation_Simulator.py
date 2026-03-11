@@ -111,7 +111,10 @@ st.caption(
 # This is required by derive_gcs_params and run_full_simulation.
 # ---------------------------------------------------------------------------
 _obs_clean = (
-    obs_df.dropna(subset=["datetime", "height"]).sort_values("datetime").reset_index(drop=True)
+    obs_df.dropna(subset=["datetime", "height"])
+    .loc[lambda df: df["height"] > 0]
+    .sort_values("datetime")
+    .reset_index(drop=True)
 )
 has_obs = len(_obs_clean) >= 2
 
@@ -258,8 +261,13 @@ with tab2:
                     st.session_state[KEY_SIM_RESULTS] = results
                     st.session_state[KEY_SIM_CONFIG] = config
                     st.success("✅ Simulation complete!")
+                except ValueError as exc:
+                    st.error(f"⚠️ Invalid input: {exc}")
+                    st.session_state[KEY_SIM_RESULTS] = None
                 except Exception as exc:
-                    st.error(f"Simulation failed: {exc}")
+                    st.error(
+                        f"Simulation failed with an unexpected error: {type(exc).__name__}: {exc}"
+                    )
                     st.session_state[KEY_SIM_RESULTS] = None
 
     # --------------------------------------------------------
@@ -363,9 +371,9 @@ with tab2:
             _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
             ec1, ec2 = st.columns(2)
             ec1.metric(
-                "r₀ [R☉]",
+                "𝒓₀ [R☉]",
                 f"{d.r0_rsun:.2f}",
-                help="Initial apex height: greatest observed coronagraph height, used as the "
+                help="Initial apex height 𝒓₀: greatest observed coronagraph height, used as the "
                 "starting position r(t=0) of the drag ODE [R☉].",
             )
             ec2.metric(
@@ -375,9 +383,9 @@ with tab2:
                 "observation, used as t=0 for the ODE integration.",
             )
             st.metric(
-                "vₐₚₑₓ [km/s]",
+                "v_apex [km/s]",
                 f"{d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f}",
-                help="CME apex velocity and 1σ uncertainty from the weighted linear "
+                help="CME apex velocity and $1\\sigma$ uncertainty from the weighted linear "
                 "height-time fit. Represents the outward speed of the outermost "
                 "point of the GCS flux rope.",
             )
@@ -385,38 +393,38 @@ with tab2:
                 f"v₀ → {stored_config.target.name} [km/s]",
                 f"{results.v0_kms:.0f}{_v0_note}",
                 help="Initial CME speed projected onto the Sun–target line of sight: "
-                "v₀ = vₐₚₑₓ × projection ratio. This is the starting velocity "
+                "$v_0 = v_{\\rm apex} \\times$ projection ratio. This is the starting velocity "
                 "fed into the 1-D drag equation.",
             )
             ea1, ea2 = st.columns(2)
             ea1.metric(
-                "α [deg]",
+                "𝜶 [deg]",
                 f"{d.alpha_deg:.1f}",
-                help="GCS half-angle α: angular half-width of the CME flux-rope shell. "
+                help="GCS half-angle 𝜶: angular half-width of the CME flux-rope shell. "
                 "Controls the lateral (longitudinal) extent of the ejecta.",
             )
             ea2.metric(
-                "κ",
+                "𝜿",
                 f"{d.kappa:.3f}",
-                help="GCS aspect ratio κ: ratio of the cross-section radius to the apex "
+                help="GCS aspect ratio 𝜿: ratio of the cross-section radius to the apex "
                 "distance. Determines how 'fat' the flux rope appears in projection.",
             )
             eb1, eb2 = st.columns(2)
             eb1.metric(
-                "lon [deg]",
+                "𝝓 [deg]",
                 f"{d.lon_deg:.1f}",
-                help="Stonyhurst heliographic longitude of the CME source region "
+                help="Stonyhurst heliographic longitude 𝝓 of the CME source region "
                 "(Carrington frame, Earth at 0°).",
             )
             eb2.metric(
-                "lat [deg]",
+                "𝜽 [deg]",
                 f"{d.lat_deg:.1f}",
-                help="Stonyhurst heliographic latitude of the CME source region.",
+                help="Stonyhurst heliographic latitude 𝜽 of the CME source region.",
             )
             st.metric(
-                "tilt [deg]",
+                "𝜸 [deg]",
                 f"{d.tilt_deg:.1f}",
-                help="Tilt of the CME flux-rope axis relative to the solar equatorial plane. "
+                help="Tilt 𝜸 of the CME flux-rope axis relative to the solar equatorial plane. "
                 "Positive tilt = north-east orientation of the axis.",
             )
             st.metric(
@@ -486,9 +494,9 @@ with tab2:
             )
             ec1, ec2 = st.columns(2)
             ec1.metric(
-                "r₀ [R☉]",
+                "𝒓₀ [R☉]",
                 f"{d.r0_rsun:.2f}",
-                help="Initial apex height: greatest observed coronagraph height, used as the "
+                help="Initial apex height 𝒓₀: greatest observed coronagraph height, used as the "
                 "starting position r(t=0) of the drag ODE [R☉].",
             )
             ec2.metric(
@@ -498,9 +506,9 @@ with tab2:
                 "observation, used as t=0 for the ODE integration.",
             )
             st.metric(
-                "vₐₚₑₓ [km/s]",
+                "v_apex [km/s]",
                 f"{d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f}",
-                help="CME apex velocity and 1σ uncertainty from the weighted linear "
+                help="CME apex velocity and $1\\sigma$ uncertainty from the weighted linear "
                 "height-time fit. Represents the outward speed of the outermost "
                 "point of the GCS flux rope.",
             )
@@ -508,38 +516,38 @@ with tab2:
                 f"v₀ → {stored_config.target.name} [km/s]",
                 f"{results.v0_kms:.0f}{_v0_note}",
                 help="Initial CME speed projected onto the Sun–target line of sight: "
-                "v₀ = vₐₚₑₓ × projection ratio. This is the starting velocity "
+                "$v_0 = v_{\\rm apex} \\times$ projection ratio. This is the starting velocity "
                 "fed into the 1-D drag equation.",
             )
             ea1, ea2 = st.columns(2)
             ea1.metric(
-                "α [deg]",
+                "𝜶 [deg]",
                 f"{d.alpha_deg:.1f}",
-                help="GCS half-angle α: angular half-width of the CME flux-rope shell. "
+                help="GCS half-angle 𝜶: angular half-width of the CME flux-rope shell. "
                 "Controls the lateral (longitudinal) extent of the ejecta.",
             )
             ea2.metric(
-                "κ",
+                "𝜿",
                 f"{d.kappa:.3f}",
-                help="GCS aspect ratio κ: ratio of the cross-section radius to the apex "
+                help="GCS aspect ratio 𝜿: ratio of the cross-section radius to the apex "
                 "distance. Determines how 'fat' the flux rope appears in projection.",
             )
             eb1, eb2 = st.columns(2)
             eb1.metric(
-                "lon [deg]",
+                "𝝓 [deg]",
                 f"{d.lon_deg:.1f}",
-                help="Stonyhurst heliographic longitude of the CME source region "
+                help="Stonyhurst heliographic longitude 𝝓 of the CME source region "
                 "(Carrington frame, Earth at 0°).",
             )
             eb2.metric(
-                "lat [deg]",
+                "𝜽 [deg]",
                 f"{d.lat_deg:.1f}",
-                help="Stonyhurst heliographic latitude of the CME source region.",
+                help="Stonyhurst heliographic latitude 𝜽 of the CME source region.",
             )
             st.metric(
-                "tilt [deg]",
+                "𝜸 [deg]",
                 f"{d.tilt_deg:.1f}",
-                help="Tilt of the CME flux-rope axis relative to the solar equatorial plane. "
+                help="Tilt 𝜸 of the CME flux-rope axis relative to the solar equatorial plane. "
                 "Positive tilt = north-east orientation of the axis.",
             )
             ew1, ew2 = st.columns(2)
@@ -566,7 +574,8 @@ with tab2:
                 "CME mass",
                 _mass,
                 help="Total CME mass used in the momentum equation. Either a manual override "
-                "or the Pluta (2018) empirical formula: log₁₀(M/g) = 3.4×10⁻⁴ v + 15.479, "
+                r"or the Pluta (2018) empirical formula: "
+                r"$\log_{10}(M/{\rm g}) = 3.4\times10^{-4}\,v + 15.479$, "
                 "where v is the apex velocity in km/s.",
             )
 

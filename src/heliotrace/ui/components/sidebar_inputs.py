@@ -151,48 +151,80 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
 
         c_lon, c_lat, c_tilt = st.columns(3)
         gcs_lon_str = c_lon.text_input(
-            "Lon [deg]",
+            "Lon 𝝓 [deg]",
             placeholder="[-180, 180]",
             key="sb_gcs_lon",
-            help="Stonyhurst heliographic longitude of the CME source region [deg].",
+            help="Stonyhurst heliographic longitude 𝝓 of the CME source region [deg].",
         )
         gcs_lat_str = c_lat.text_input(
-            "Lat [deg]",
+            "Lat 𝜽 [deg]",
             placeholder="[-90, 90]",
             key="sb_gcs_lat",
-            help="Stonyhurst heliographic latitude of the CME source [deg].",
+            help="Stonyhurst heliographic latitude 𝜽 of the CME source [deg].",
         )
         gcs_tilt_str = c_tilt.text_input(
-            "Tilt [deg]",
+            "Tilt 𝜸 [deg]",
             placeholder="[-90, 90]",
             key="sb_gcs_tilt",
-            help="Tilt of the CME flux-rope axis relative to the solar equatorial plane [deg].",
+            help="Tilt 𝜸 of the CME flux-rope axis relative to the solar equatorial plane [deg].",
         )
         gcs_lon = _parse_float(gcs_lon_str)
         gcs_lat = _parse_float(gcs_lat_str)
         gcs_tilt = _parse_float(gcs_tilt_str)
 
+        if gcs_lon is not None and not -180.0 <= gcs_lon <= 180.0:
+            wrapped = (gcs_lon + 180.0) % 360.0 - 180.0
+            st.warning(
+                f"❌ Longitude 𝝓 = {gcs_lon:.1f}° is outside [-180, 180]. Wrapped to {wrapped:.1f}°."
+            )
+            gcs_lon = wrapped
+        if gcs_lat is not None and not -90.0 <= gcs_lat <= 90.0:
+            clamped = max(-90.0, min(90.0, gcs_lat))
+            st.error(
+                f"❌ Latitude 𝜽 = {gcs_lat:.1f}° is outside [-90, 90]. Clamped to {clamped:.1f}°."
+            )
+            gcs_lat = clamped
+        if gcs_tilt is not None and not -90.0 <= gcs_tilt <= 90.0:
+            clamped = max(-90.0, min(90.0, gcs_tilt))
+            st.warning(
+                f"❌ Tilt 𝜸 = {gcs_tilt:.1f}° is outside [-90, 90]. Clamped to {clamped:.1f}°."
+            )
+            gcs_tilt = clamped
+
         c_ha, c_kp = st.columns(2)
         gcs_half_angle_str = c_ha.text_input(
-            "Half-angle α [deg]",
-            placeholder="[0.1, 89.9]",
+            "Half-angle 𝜶 [deg]",
+            placeholder="[1, 89]",
             key="sb_gcs_half_angle",
-            help=(
-                "GCS half-angle α: angular half-width of the CME shell [deg]. Valid: [0.1°, 89.9°]."
-            ),
+            help="GCS half-angle 𝜶: angular half-width of the CME shell [deg]. Valid: (0°, 90°). Typical: 5–60°.",
         )
         gcs_kappa_str = c_kp.text_input(
-            "Aspect ratio κ",
+            "Aspect ratio 𝜿",
             placeholder="[0.01, 0.99]",
             key="sb_gcs_kappa",
-            help="GCS aspect ratio κ: cross-section radius / apex distance. Valid: [0.01, 0.99].",
+            help="GCS aspect ratio 𝜿: cross-section radius / apex distance. Valid: (0, 1). Typical: 0.15–0.7.",
         )
         gcs_half_angle = _parse_float(gcs_half_angle_str)
         gcs_kappa = _parse_float(gcs_kappa_str)
-        if gcs_half_angle and not 5.0 <= gcs_half_angle <= 60.0:
-            st.warning("⚠️ Half-angle outside typical range 5–60°.")
-        if gcs_kappa and not 0.1 <= gcs_kappa <= 0.8:
-            st.warning("⚠️ κ outside typical range 0.1–0.8.")
+
+        if gcs_half_angle is not None:
+            if gcs_half_angle <= 0.0:
+                st.error("❌ Half-angle 𝜶 must be > 0°. Clamped to 1°.")
+                gcs_half_angle = 1.0
+            elif gcs_half_angle >= 90.0:
+                st.error("❌ Half-angle 𝜶 must be < 90°. Clamped to 89.99°.")
+                gcs_half_angle = 89.99
+            # elif not 5.0 <= gcs_half_angle <= 60.0:
+            #     st.info("ℹ️ Half-angle is outside the typical range 5–60°.")
+        if gcs_kappa is not None:
+            if gcs_kappa >= 1.0:
+                st.error("❌ Aspect ratio 𝜿 must be < 1. Clamped to 0.99.")
+                gcs_kappa = 0.99
+            elif gcs_kappa <= 0.0:
+                st.error("❌ Aspect ratio 𝜿 must be > 0. Clamped to 0.01.")
+                gcs_kappa = 0.01
+            # elif not 0.15 <= gcs_kappa <= 0.7:
+            #     st.info("ℹ️ Aspect ratio 𝜿 is outside the typical range 0.15–0.7.")
 
         st.divider()
         # ------------------------------------------------------------------ #
@@ -214,15 +246,15 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                     "Time (UTC)",
                     required=True,
                     format="YYYY-MM-DD HH:mm",
-                    help="UTC observation timestamp from the coronagraph image.",
+                    help="UTC observation timestamp from the coronagraph image on which the fit was performed.",
                 ),
                 "height": st.column_config.NumberColumn(
-                    "Height [R☉]",
+                    "Height 𝒓 [R☉]",
                     min_value=0.1,
                     max_value=300.0,
                     step=0.1,
                     format="%.2f",
-                    help="CME leading-edge apex height in solar radii [R☉].",
+                    help="Fitted CME apex height in solar radii [R☉].",
                 ),
             },
             key=f"obs_editor_{counter}",
@@ -241,7 +273,21 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 key="sb_height_error",
                 help="Symmetric ±uncertainty applied to every height measurement [R☉].",
             )
-            height_error: float = _parse_float(height_error_str, default=0.25) or 0.25
+            _height_error_parsed = _parse_float(height_error_str, default=0.25)
+            if _height_error_parsed is None:
+                st.warning("⚠️ Invalid height error — using default 0.25 R☉.")
+                _height_error_parsed = 0.25
+            elif _height_error_parsed < 0.0:
+                st.warning(
+                    f"⚠️ Height error must be ≥ 0. "
+                    f"Using |{_height_error_parsed}| = {abs(_height_error_parsed)} R☉."
+                )
+                _height_error_parsed = abs(_height_error_parsed)
+            elif _height_error_parsed == 0.0:
+                st.info(
+                    "ℹ️ Height error = 0 R☉: all observations treated as exact (unweighted fit)."
+                )
+            height_error: float = _height_error_parsed
 
         st.divider()
         # ------------------------------------------------------------------ #
@@ -291,7 +337,18 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                     "Dimensionless drag coefficient (converges to ~1 beyond ~12 R☉, Cargill 2004)."
                 ),
             )
-            c_d: float = _parse_float(c_d_str, default=1.0) or 1.0
+            _c_d_parsed = _parse_float(c_d_str, default=1.0)
+            if _c_d_parsed is None:
+                st.warning("⚠️ Invalid drag coefficient — using default 1.0.")
+                _c_d_parsed = 1.0
+            elif _c_d_parsed <= 0.0:
+                st.error("❌ Drag coefficient must be > 0. Clamped to 0.01.")
+                _c_d_parsed = 0.01
+            elif _c_d_parsed > 5.0:
+                st.info(
+                    f"ℹ️ c_d = {_c_d_parsed} is on the high end (typical: 0.5–2.0, Cargill 2004)."
+                )
+            c_d: float = _c_d_parsed
 
             st.divider()
             st.caption("Optional overrides")
@@ -327,9 +384,18 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 key="sb_v0_override",
                 placeholder="e.g. 600",
                 help="Hard override for the CME velocity component directed at the target. "
-                "Replaces the geometry-derived v₀ = v_apex × projection ratio.",
+                r"Replaces the geometry-derived $v_0 = v_{\rm apex} \times$ projection ratio.",
             )
             v0_override_kms: Optional[float] = _parse_float(v0_override_str)
+            if v0_override_kms is not None:
+                if v0_override_kms <= 0.0:
+                    st.error("❌ v₀ override must be > 0 km/s. Override ignored.")
+                    v0_override_kms = None
+                elif v0_override_kms > 3000.0:
+                    st.info(
+                        f"ℹ️ v₀ = {v0_override_kms:.0f} km/s is above the fastest CME on record "
+                        f"(~3000 km/s)."
+                    )
 
         st.divider()
 

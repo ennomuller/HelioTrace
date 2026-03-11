@@ -110,7 +110,7 @@ def build_single_model_figure(
 
     _ax = dict(showgrid=True, gridcolor="#eee", title_font=dict(size=13), tickfont=dict(size=11))
     fig.update_xaxes(title_text="Propagation Time [h]", **_ax)
-    fig.update_yaxes(title_text="Distance from Sun [R\u2609]", secondary_y=False, **_ax)
+    fig.update_yaxes(title_text="Distance from Sun [R<sub>☉</sub>]", secondary_y=False, **_ax)
     fig.update_yaxes(
         title_text="Radial Velocity [km/s]",
         secondary_y=True,
@@ -183,7 +183,7 @@ def build_propagation_comparison_figure(
                 line=dict(color=color, width=2.5),
                 legendgroup=label,
                 hovertemplate=(
-                    f"<b>{label}</b><br>t = %{{x:.1f}} h<br>r = %{{y:.0f}} R☉<extra></extra>"
+                    f"<b>{label}</b><br>t = %{{x:.1f}} h<br>r = %{{y:.0f}} R<sub>☉</sub><extra></extra>"
                 ),
             ),
             row=1,
@@ -271,7 +271,7 @@ def build_propagation_comparison_figure(
     fig.update_xaxes(title_text="Propagation Time [h]", **_ax)
     fig.update_yaxes(showgrid=True, gridcolor="#eee", tickfont=dict(size=12))
     fig.update_yaxes(
-        title_text="Distance from Sun [R\u2609]", title_font=dict(size=13), row=1, col=1
+        title_text="Distance from Sun [R<sub>☉</sub>]", title_font=dict(size=13), row=1, col=1
     )
     fig.update_yaxes(title_text="Radial Velocity [km/s]", title_font=dict(size=13), row=1, col=2)
 

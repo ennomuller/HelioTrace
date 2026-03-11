@@ -49,7 +49,11 @@ def derive_gcs_params(df: pd.DataFrame, height_error: float) -> DerivedGCSParams
     :param height_error: ± measurement uncertainty applied to every height point [R_sun].
     :return: :class:`~heliotrace.models.schemas.DerivedGCSParams`.
     """
-    df = df.sort_values("datetime").reset_index(drop=True)
+    df = df.dropna(subset=["datetime", "height"]).sort_values("datetime").reset_index(drop=True)
+    if len(df) < 2:
+        raise ValueError(
+            "At least 2 valid observations (datetime + height) are required for the H-T fit."
+        )
     df["_dt_s"] = (df["datetime"] - df["datetime"].iloc[0]).dt.total_seconds()
 
     fit = perform_linear_fit(
@@ -208,7 +212,7 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
             elapsed_DBM, vel_DBM = find_time_and_velocity_at_distance(sol_DBM, target_distance)
             arrival_DBM = derived.t0 + pd.Timedelta(seconds=elapsed_DBM)
             series_DBM = _sample_solution(sol_DBM, elapsed_DBM)
-        except (ValueError, Exception) as exc:
+        except ValueError as exc:
             logger.warning("DBM arrival extraction failed: %s", exc)
 
         try:
@@ -217,7 +221,7 @@ def run_full_simulation(df: pd.DataFrame, config: SimulationConfig) -> Simulatio
             )
             arrival_MODBM = derived.t0 + pd.Timedelta(seconds=elapsed_MODBM)
             series_MODBM = _sample_solution(sol_MODBM, elapsed_MODBM)
-        except (ValueError, Exception) as exc:
+        except ValueError as exc:
             logger.warning("MoDBM arrival extraction failed: %s", exc)
 
     logger.info(
