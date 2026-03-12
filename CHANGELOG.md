@@ -9,12 +9,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [0.1.0] — 2026-03-11
 
 Initial public release of HelioTrace — an interactive CME propagation explorer
-built on peer-reviewed heliophysics models and developed as part of a Master's
+built on peer-reviewed heliophysics models and developed based on research done in a Master's
 Thesis at Georg-August-University Göttingen.
 
-### Added
+### Features
 
 #### Physics & Science
+
 - **GCS 3D Reconstruction** — Graduated Cylindrical Shell geometry (Thernisien et al. 2006)
   for modeling CME flux-rope shape from coronagraph observations.
 - **Kinematic Fitting** — Extract initial CME apex velocity from height-time profiles
@@ -32,6 +33,7 @@ Thesis at Georg-August-University Göttingen.
   for both DBM and MoDBM.
 
 #### Application
+
 - Streamlit-based interactive web app (`app.py`) with declarative multi-page navigation.
 - Sidebar-driven input controls for GCS parameters, observations, and propagation settings.
 - Tab 1: interactive 3D GCS flux-rope visualization (Plotly, grid wireframe rendering).
@@ -43,6 +45,7 @@ Thesis at Georg-August-University Göttingen.
 - Tab10 color palette and responsive plot sizing for consistent visual style.
 
 #### Infrastructure
+
 - `src/heliotrace/` package layout with `physics/`, `models/`, `simulation/`, and `ui/` sub-packages.
 - Pydantic-based data schemas (`models/schemas.py`) for validated parameter passing.
 - Simulation runner (`simulation/runner.py`) decoupling physics from the UI layer.
@@ -52,6 +55,7 @@ Thesis at Georg-August-University Göttingen.
 - `pip install -e ".[dev]"` extras for development and testing.
 
 #### Testing
+
 - Analytic test suite for `drag.py` — 39 functions covering DBM/MoDBM edge cases,
   unit consistency, ODE stability, and closed-form solutions.
 - `test_geometry.py` — GCS geometry correctness checks.
@@ -59,6 +63,7 @@ Thesis at Georg-August-University Göttingen.
 - `test_apex_ratio.py` — Apex ratio boundary and correctness tests.
 
 #### Documentation
+
 - README with science background, four-step physics workflow, model reference table,
   quick-start (Docker) and local development instructions.
 - `THIRD_PARTY_LICENSES.md` attributing the GCS geometry code adapted from
@@ -67,10 +72,8 @@ Thesis at Georg-August-University Göttingen.
 - Related publication citation (Müller 2025, Zenodo DOI: 10.5281/zenodo.18788366).
 
 ### Fixed
-- GCS plot color regression (tab10 palette applied correctly to all traces).
-- Session-state key conflict (`sb_w`) in the sidebar inputs component.
-- GCS empty-state handling to avoid rendering errors before parameters are set.
-- Ruff E501 line-length violations across the physics module.
+
+- N/A (initial release)
 
 ---
 
