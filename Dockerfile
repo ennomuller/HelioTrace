@@ -11,21 +11,23 @@ FROM python:3.11-slim
 # --- Environment hygiene ---
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    UV_SYSTEM_PYTHON=1
 
 WORKDIR /app
 
-# --- System build tools (needed for scipy / numpy wheels) ---
+# --- System build tools (needed for scipy / numpy wheels) + uv ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         curl \
+    && pip install uv \
     && rm -rf /var/lib/apt/lists/*
 
 # --- Install Python dependencies first (cache layer) ---
-# Only copy the package manifest so this layer re-runs only when deps change.
-COPY pyproject.toml ./
+# Copy manifest + lock file so this layer re-runs only when deps change.
+COPY pyproject.toml uv.lock ./
 COPY src/ ./src/
-RUN pip install --no-cache-dir .
+RUN uv sync --frozen --no-dev
 
 # --- Copy application code ---
 COPY app.py ./
