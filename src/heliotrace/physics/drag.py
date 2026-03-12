@@ -284,13 +284,16 @@ def simulate_equation_of_motion_MODBM(
     :param c_d:     Drag coefficient.
     :return: ``scipy.integrate.solve_ivp`` solution with ``dense_output=True``.
     """
+    mass_q: u.Quantity
     if M is None:
-        M = get_CME_mass_pluta(v_apex)
+        mass_q = get_CME_mass_pluta(v_apex).to(u.kg)
+    else:
+        mass_q = M.to(u.kg)
 
     r0_km = r0.to(u.km).value
     v0_kms = v0.to(u.km / u.s).value
     alpha_rad = alpha.to(u.rad).value
-    M_kg = M.to(u.kg).value
+    M_kg = mass_q.value
 
     logger.debug(
         "MoDBM ODE: r0=%.2f km, v0=%.1f km/s, w_type=%s, ssn=%.0f",
