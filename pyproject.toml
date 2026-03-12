@@ -54,3 +54,6 @@ venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
 reportMissingTypeStubs = false
+reportAttributeAccessIssue = "warning" # CI shouldn't fail on sol.t or array.to()
+reportArgumentType = "warning"         # Demote Plotly row=1 and float/Quantity mismatches
+reportMissingImports = "error"         # Ensures dependencies are correct

@@ -24,7 +24,7 @@ jobs:
           restore-keys: ${{ runner.os }}-pip-
 
       - name: Install package and dev dependencies
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,notebooks]"
 
       - name: Install linting and type-checking tools
         run: pip install ruff pyright
