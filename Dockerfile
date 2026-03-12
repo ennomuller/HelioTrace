@@ -3,31 +3,38 @@
 #
 # Build:   docker build -t heliotrace .
 # Run:     docker run -p 8501:8501 heliotrace
-# Compose: docker-compose up
+# Compose: docker compose up
 # ---------------------------------------------------------------------------
 
 FROM python:3.11-slim
+
+# --- Install uv from the official image ---
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # --- Environment hygiene ---
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
-    UV_SYSTEM_PYTHON=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
 WORKDIR /app
 
-# --- System build tools (needed for scipy / numpy wheels) + uv ---
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        curl \
-    && pip install uv \
-    && rm -rf /var/lib/apt/lists/*
-
 # --- Install Python dependencies first (cache layer) ---
 # Copy manifest + lock file so this layer re-runs only when deps change.
-COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=README.md,target=README.md \
+    uv sync --frozen --no-dev --no-install-project
+
+# --- Copy application source and install the local package ---
 COPY src/ ./src/
-RUN uv sync --frozen --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=README.md,target=README.md \
+    uv sync --frozen --no-dev
 
 # --- Copy application code ---
 COPY app.py ./
@@ -38,5 +45,6 @@ COPY .streamlit/ ./.streamlit/
 EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-# --- Launch ---
+# --- Launch (use the venv created by uv) ---
+ENV PATH="/app/.venv/bin:$PATH"
 ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]

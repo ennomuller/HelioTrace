@@ -9,7 +9,9 @@ node_modules
 **/*.egg-info
 dist/
 build/
-MEMORY.md
 tests/
-*.md
+MEMORY.md
+CHANGELOG.md
+CONTRIBUTING.md
+docs/
 untitled*

@@ -10,7 +10,7 @@ services:
 
   # --------------------------------------------------------------------------
   # Development override — adds live-reload mounts.
-  # Usage: docker-compose --profile dev up
+  # Usage: docker compose --profile dev up
   # --------------------------------------------------------------------------
   app-dev:
     build: .
