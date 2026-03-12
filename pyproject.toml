@@ -43,6 +43,10 @@ addopts   = "-v"
 
   [tool.ruff.lint]
   select = ["E", "F", "W", "I"]
+  ignore = ["E501", "F401"] 
+
+  [tool.ruff.lint.isort]
+  known-first-party = ["heliotrace"]
 
 [tool.pyright]
 pythonVersion = "3.11"
