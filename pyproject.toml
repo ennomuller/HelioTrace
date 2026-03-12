@@ -14,23 +14,28 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Install with: pip install heliotrace[notebooks]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov",
+    "ruff",
+    "pyright",
+]
 notebooks = [
     "sunpy~=5.1",
     "matplotlib~=3.10",
 ]
-# Install with: pip install heliotrace[dev]
+
+[dependency-groups]
 dev = [
     "pytest>=8.0",
     "pytest-cov",
+    "ruff",
+    "pyright",
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["src"]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -42,16 +47,22 @@ addopts   = "-v"
   exclude = [".venv", ".git", "__pycache__"]
 
   [tool.ruff.lint]
-  select = ["E", "F", "W", "I"]
-  ignore = ["E501", "F401"] 
+  select =[
+    "E", "F", "W",  # Standard Flake8
+    "I",            # isort
+    "B",            # flake8-bugbear
+    "UP",           # pyupgrade: modern Python 3.11+ syntax
+    "SIM",          # flake8-simplify: cleaner code logic
+    "NPY",          # NumPy-specific rules: for Astropy/SciPy workflows
+    "PT",           # flake8-pytest-style: keeps tests clean
+  ]
+  ignore = ["E501"] 
 
   [tool.ruff.lint.isort]
   known-first-party = ["heliotrace"]
 
 [tool.pyright]
 pythonVersion = "3.11"
-venvPath = "."
-venv = ".venv"
 typeCheckingMode = "basic"
 reportMissingTypeStubs = false
 reportAttributeAccessIssue = "warning" # CI shouldn't fail on sol.t or array.to()

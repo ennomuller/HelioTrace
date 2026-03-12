@@ -6,34 +6,48 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  ci:
+  test-and-lint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: uv sync --all-extras
 
-      - name: Install package and dev dependencies
-        run: pip install -e ".[dev,notebooks]"
+      - name: Check formatting (Ruff)
+        run: uv run ruff format --check .
 
-      - name: Install linting and type-checking tools
-        run: pip install ruff pyright
+      - name: Lint (Ruff)
+        run: uv run ruff check --output-format=github .
 
-      - name: Ruff lint
-        run: ruff check . --config pyproject.toml
-
-      - name: Pyright type check
-        run: pyright src/ --warnings
+      - name: Type check (Pyright)
+        run: uv run pyright src/
 
       - name: Pytest with coverage
-        run: pytest --cov=src/heliotrace --cov-report=term-missing
+        run: uv run pytest --cov=src/heliotrace --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Job Summary
+        if: matrix.python-version == '3.11' # Only run once
+        run: uv run coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
+
+  docker-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Docker Build
+        run: docker compose build
