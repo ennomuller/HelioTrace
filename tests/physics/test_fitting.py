@@ -112,7 +112,7 @@ def test_negative_slope_recovery() -> None:
 
 
 @pytest.mark.parametrize(
-    "N, sigma",
+    ("N", "sigma"),
     [(5, 0.2), (10, 1.0), (20, 0.5), (50, 2.0)],
 )
 def test_weighted_slope_error_closed_form(N: int, sigma: float) -> None:

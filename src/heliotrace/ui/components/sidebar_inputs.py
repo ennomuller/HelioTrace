@@ -8,7 +8,6 @@ Renders all user-controllable parameters and returns a
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 import pandas as pd
 import streamlit as st
@@ -79,7 +78,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         if st.button(
             "⚡ Fill with example",
             type="primary",
-            use_container_width=True,
+            width="content",
             help="Auto-fill all fields with the 2023-10-28 Halloween CME event.",
         ):
             _fill_example()
@@ -240,7 +239,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             obs_init,
             hide_index=True,
             num_rows="dynamic",
-            use_container_width=True,
+            width="content",
             column_config={
                 "datetime": st.column_config.DatetimeColumn(
                     "Time (UTC)",
@@ -352,7 +351,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
 
             st.divider()
             st.caption("Optional overrides")
-            toa_raw: Optional[str] = (
+            toa_raw: str | None = (
                 st.text_input(
                     "Expected arrival time (optional)",
                     key="sb_toa_raw",
@@ -377,7 +376,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 format="%.2e",
                 help="Override the Pluta (2018) mass formula. Enter 0 to keep the formula.",
             )
-            m_override_g: Optional[float] = m_override_raw if m_override_raw > 0.0 else None
+            m_override_g: float | None = m_override_raw if m_override_raw > 0.0 else None
 
             v0_override_str: str = st.text_input(
                 "v₀ override [km/s]  (blank = geometry-derived)",
@@ -386,7 +385,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 help="Hard override for the CME velocity component directed at the target. "
                 r"Replaces the geometry-derived $v_0 = v_{\rm apex} \times$ projection ratio.",
             )
-            v0_override_kms: Optional[float] = _parse_float(v0_override_str)
+            v0_override_kms: float | None = _parse_float(v0_override_str)
             if v0_override_kms is not None:
                 if v0_override_kms <= 0.0:
                     st.error("❌ v₀ override must be > 0 km/s. Override ignored.")
@@ -405,7 +404,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         run_clicked: bool = st.button(
             "▶ Run Simulation",
             type="primary",
-            use_container_width=True,
+            width="content",
         )
 
     config = SimulationConfig(

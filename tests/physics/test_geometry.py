@@ -75,7 +75,7 @@ def _apex_radius_formula(height: float, k: float) -> float:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("sv, fv", [(5, 10), (10, 10), (10, 20), (15, 5)])
+@pytest.mark.parametrize(("sv", "fv"), [(5, 10), (10, 10), (10, 20), (15, 5)])
 def test_skeleton_vertex_count_formula(sv: int, fv: int) -> None:
     """Total len(r) equals (fv + sv)*2 - 3 for all vertex count combinations."""
     _, r, _ = skeleton(_ALPHA, _DISTJUNC, sv, fv, _KAPPA)
@@ -149,7 +149,8 @@ def test_gcs_mesh_output_shapes() -> None:
     N_total = N_skel * _CV
     mesh, u, v = gcs_mesh(_ALPHA, _HEIGHT, _SV, _FV, _CV, _KAPPA)
     assert mesh.shape == (N_total, 3), f"mesh.shape={mesh.shape}, expected ({N_total}, 3)"
-    assert u.ndim == 1 and v.ndim == 1, "u and v must be 1D"
+    assert u.ndim == 1, "u must be 1D"
+    assert v.ndim == 1, "v must be 1D"
     assert u.shape == v.shape, f"u.shape={u.shape} != v.shape={v.shape}"
     assert len(u) == N_total, f"len(u)={len(u)}, expected {N_total}"
 
@@ -248,7 +249,7 @@ def test_rotate_mesh_preserves_shape() -> None:
 
 
 @pytest.mark.parametrize(
-    "lon, lat, tilt",
+    ("lon", "lat", "tilt"),
     [(0.1, 0.2, 0.3), (1.0, 0.5, -0.5), (np.pi / 4, np.pi / 6, 0.0)],
 )
 def test_rotate_mesh_preserves_point_norms(lon: float, lat: float, tilt: float) -> None:
@@ -291,7 +292,7 @@ def test_rotate_mesh_180_double_rotation_recovers_input() -> None:
 
 
 @pytest.mark.parametrize(
-    "lat_deg, lon_deg, tilt_deg",
+    ("lat_deg", "lon_deg", "tilt_deg"),
     [(0, 0, 0), (10, 20, 5), (-5, 45, 30)],
 )
 def test_gcs_mesh_rotated_identical_to_sequential_call(
@@ -345,7 +346,7 @@ def test_gcs_mesh_rotated_preserves_norm_distribution() -> None:
 
 
 @pytest.mark.parametrize(
-    "height, k",
+    ("height", "k"),
     [(1.0, 0.1), (1.0, 0.42), (1.0, 0.7), (5.0, 0.42), (10.0, 0.3)],
 )
 def test_apex_radius_closed_form(height: float, k: float) -> None:
@@ -357,7 +358,7 @@ def test_apex_radius_closed_form(height: float, k: float) -> None:
     )
 
 
-@pytest.mark.parametrize("height, k", [(1.0, 0.2), (3.0, 0.5), (7.0, 0.42)])
+@pytest.mark.parametrize(("height", "k"), [(1.0, 0.2), (3.0, 0.5), (7.0, 0.42)])
 def test_apex_radius_linear_in_height(height: float, k: float) -> None:
     """apex_radius(2h, k) / apex_radius(h, k) == 2.0 exactly (linear in height)."""
     r1 = apex_radius(height, k)

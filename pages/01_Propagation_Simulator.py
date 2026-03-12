@@ -7,8 +7,8 @@ Tab 2: Propagation Results                  (triggered by "Run Simulation" butto
 
 from __future__ import annotations
 
+import contextlib
 from datetime import datetime
-from typing import Optional
 
 import astropy.units as u
 import pandas as pd
@@ -119,7 +119,7 @@ _obs_clean = (
 has_obs = len(_obs_clean) >= 2
 
 if has_obs:
-    clean_df: Optional[pd.DataFrame] = _obs_clean.copy()
+    clean_df = _obs_clean.copy()
     clean_df["lon"] = gcs_params.lon_deg
     clean_df["lat"] = gcs_params.lat_deg
     clean_df["tilt"] = gcs_params.tilt_deg
@@ -190,7 +190,7 @@ with tab1:
             target_name=config.target.name,
             height=1.0,
         )
-        st.plotly_chart(gcs_fig, use_container_width=True)
+        st.plotly_chart(gcs_fig, width="stretch")
 
     # --------------------------------------------------------
     # Height-Time Diagram — shown once ≥2 observations exist
@@ -217,7 +217,7 @@ with tab1:
             v_apex_error_kms=derived.v_apex_error_kms,
             event_label=config.event_str,
         )
-        st.plotly_chart(ht_fig, use_container_width=True)
+        st.plotly_chart(ht_fig, width="stretch")
 
         # Velocity result displayed prominently below the plot
         v_col, proj_col, target_col, _ = st.columns([1, 1, 1, 1])
@@ -273,8 +273,8 @@ with tab2:
     # --------------------------------------------------------
     # Display stored results
     # --------------------------------------------------------
-    results: Optional[SimulationResults] = st.session_state.get(KEY_SIM_RESULTS)
-    stored_config: Optional[SimulationConfig] = st.session_state.get(KEY_SIM_CONFIG)
+    results: SimulationResults | None = st.session_state.get(KEY_SIM_RESULTS)
+    stored_config: SimulationConfig | None = st.session_state.get(KEY_SIM_CONFIG)
 
     if results is None:
         st.info(
@@ -294,12 +294,10 @@ with tab2:
     # --------------------------------------------------------
     # Parse expected ToA for comparison
     # --------------------------------------------------------
-    toa_expected: Optional[datetime] = None
+    toa_expected: datetime | None = None
     if stored_config and stored_config.toa_raw:
-        try:
+        with contextlib.suppress(ValueError):
             toa_expected = datetime.strptime(stored_config.toa_raw, "%d/%m/%Y %H:%M:%S")
-        except ValueError:
-            pass
 
     # --------------------------------------------------------
     # Summary KPI cards
@@ -448,7 +446,7 @@ with tab2:
                 label="DBM",
                 color=PLOT_COLORS["DBM"],
             )
-            st.plotly_chart(dbm_fig, use_container_width=True)
+            st.plotly_chart(dbm_fig, width="stretch")
 
     with col_modbm:
         st.markdown(
@@ -587,7 +585,7 @@ with tab2:
                 label="MoDBM",
                 color=PLOT_COLORS["MODBM"],
             )
-            st.plotly_chart(modbm_fig, use_container_width=True)
+            st.plotly_chart(modbm_fig, width="stretch")
 
     # --------------------------------------------------------
     # Full-width combined comparison
@@ -599,4 +597,4 @@ with tab2:
             results=results,
             target_distance_au=stored_config.target.distance,
         )
-        st.plotly_chart(prop_fig, use_container_width=True)
+        st.plotly_chart(prop_fig, width="stretch")

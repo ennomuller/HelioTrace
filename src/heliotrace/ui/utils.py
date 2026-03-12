@@ -5,10 +5,9 @@ Shared UI utility helpers used across Streamlit pages and components.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 
-def format_diff(sim_time: Optional[datetime], ref_time: Optional[datetime]) -> Optional[str]:
+def format_diff(sim_time: datetime | None, ref_time: datetime | None) -> str | None:
     """
     Format the signed difference between a simulated arrival and a reference time.
 

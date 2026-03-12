@@ -37,7 +37,7 @@ _RES = 200
 
 
 @pytest.mark.parametrize(
-    "cme_lat_deg, cme_lon_deg",
+    ("cme_lat_deg", "cme_lon_deg"),
     [(0, 0), (10, 20), (-5, 15)],
 )
 def test_direct_hit_ratio_near_unity(cme_lat_deg: float, cme_lon_deg: float) -> None:
@@ -60,7 +60,7 @@ def test_direct_hit_ratio_near_unity(cme_lat_deg: float, cme_lon_deg: float) -> 
 
 
 @pytest.mark.parametrize(
-    "alpha_deg, kappa",
+    ("alpha_deg", "kappa"),
     [(15, 0.2), (30, 0.42), (45, 0.6)],
 )
 def test_direct_hit_ratio_bounded(alpha_deg: float, kappa: float) -> None:
@@ -232,7 +232,7 @@ def test_tilt_does_not_affect_on_axis_hit(tilt_deg: float) -> None:
 
 
 @pytest.mark.parametrize(
-    "sep_deg, expected_above_threshold",
+    ("sep_deg", "expected_above_threshold"),
     [(30, True), (50, True), (150, False)],
 )
 def test_operationally_relevant_threshold(sep_deg: float, expected_above_threshold: bool) -> None:

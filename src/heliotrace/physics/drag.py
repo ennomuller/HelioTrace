@@ -13,11 +13,10 @@ References
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
+import astropy.constants as const
 import astropy.units as u
 import numpy as np
-from astropy.constants import m_p
 from scipy.integrate import OdeSolution, solve_ivp
 from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
@@ -88,7 +87,7 @@ def get_ambient_solar_wind_density_DBM(r: u.Quantity) -> u.Quantity:
     """
     r_rsun = r.to(u.R_sun).value
     n_init = 3.3e5 * u.cm ** (-3)
-    rho_w = m_p * n_init / r_rsun**2
+    rho_w = const.m_p * n_init / r_rsun**2
     return rho_w
 
 
@@ -97,7 +96,7 @@ def get_constant_drag_parameter_DBM(
     alpha: u.Quantity,
     kappa: float,
     v_apex: u.Quantity,
-    M: Optional[u.Quantity] = None,
+    M: u.Quantity | None = None,
     c_d: float = 1.0,
 ) -> u.Quantity:
     """
@@ -111,10 +110,7 @@ def get_constant_drag_parameter_DBM(
     :param c_d:    Drag coefficient (dimensionless).  Converges to ~1 beyond ~12 R☉.
     :return: Drag parameter γ [1 / km].
     """
-    if M is None:
-        M = get_CME_mass_pluta(v_apex).to(u.kg)
-    else:
-        M = M.to(u.kg)
+    M = get_CME_mass_pluta(v_apex).to(u.kg) if M is None else M.to(u.kg)
 
     rho_w = get_ambient_solar_wind_density_DBM(r)
     A = get_CME_cross_section_pluta(r, alpha, kappa)
@@ -186,7 +182,9 @@ def get_ambient_solar_wind_density_MODBM(r_km: float, ssn: float) -> float:
     :return: Mass density [kg / km³].
     """
     r_au = r_km * u.km.to(u.AU)
-    rho_w = m_p.value * (0.0038 * ssn + 4.5) * (u.cm ** (-3)).to(u.km ** (-3)) * r_au ** (-2.11)
+    rho_w = (
+        const.m_p.value * (0.0038 * ssn + 4.5) * (u.cm ** (-3)).to(u.km ** (-3)) * r_au ** (-2.11)
+    )
     return float(rho_w)
 
 
@@ -265,7 +263,7 @@ def simulate_equation_of_motion_MODBM(
     kappa: float,
     w_type: str,
     ssn: float,
-    M: Optional[u.Quantity] = None,
+    M: u.Quantity | None = None,
     c_d: float = 1.0,
 ) -> OdeSolution:
     """
@@ -285,10 +283,7 @@ def simulate_equation_of_motion_MODBM(
     :return: ``scipy.integrate.solve_ivp`` solution with ``dense_output=True``.
     """
     mass_q: u.Quantity
-    if M is None:
-        mass_q = get_CME_mass_pluta(v_apex).to(u.kg)
-    else:
-        mass_q = M.to(u.kg)
+    mass_q = get_CME_mass_pluta(v_apex).to(u.kg) if M is None else M.to(u.kg)
 
     r0_km = r0.to(u.km).value
     v0_kms = v0.to(u.km / u.s).value

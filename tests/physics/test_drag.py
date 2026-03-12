@@ -240,7 +240,7 @@ def test_dbm_gamma_units() -> None:
 
 
 @pytest.mark.parametrize(
-    "r_au, ssn",
+    ("r_au", "ssn"),
     [(1.0, 50.0), (1.5, 100.0), (2.0, 0.0)],
 )
 def test_modbm_density_power_law_exponent(r_au: float, ssn: float) -> None:
@@ -326,7 +326,7 @@ def test_modbm_gamma_inverse_in_mass() -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("w_type, expected", [("slow", 363.0), ("fast", 483.0)])
+@pytest.mark.parametrize(("w_type", "expected"), [("slow", 363.0), ("fast", 483.0)])
 def test_modbm_wind_at_1au(w_type: str, expected: float) -> None:
     """At 1 AU, r_AU = 1 → w = w0 * 1.0^0.099 = w0 exactly."""
     w = get_ambient_solar_wind_speed_MODBM(AU_KM, w_type)
@@ -366,7 +366,7 @@ def test_modbm_wind_fast_slow_ratio_constant(r_au: float) -> None:
 @pytest.mark.parametrize("bad_type", ["medium", "", "SLOW", "Fast"])
 def test_modbm_wind_invalid_type_raises(bad_type: str) -> None:
     """Unknown w_type must raise ValueError."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown w_type"):
         get_ambient_solar_wind_speed_MODBM(AU_KM, bad_type)
 
 
@@ -613,7 +613,7 @@ def test_arrival_raises_when_distance_not_reached() -> None:
         400.0 * u.km / u.s,
         1e-7 / u.km,
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="f\\(a\\) and f\\(b\\) must have different signs"):
         find_time_and_velocity_at_distance(sol, 1.0 * u.AU)
 
 

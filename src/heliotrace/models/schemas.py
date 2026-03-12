@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 # ---------------------------------------------------------------------------
 # Input models
@@ -60,9 +59,9 @@ class SimulationConfig:
     c_d: float  # Drag coefficient (dimensionless)
 
     # Optional overrides
-    toa_raw: Optional[str] = None  # Expected arrival "DD/MM/YYYY HH:MM:SS"; None → skip
-    m_override_g: Optional[float] = None  # CME mass override [g]; None → use Pluta formula
-    v0_override_kms: Optional[float] = (
+    toa_raw: str | None = None  # Expected arrival "DD/MM/YYYY HH:MM:SS"; None → skip
+    m_override_g: float | None = None  # CME mass override [g]; None → use Pluta formula
+    v0_override_kms: float | None = (
         None  # Hard override for v₀ toward target [km/s]; None → geometry
     )
 
@@ -109,13 +108,13 @@ class SimulationResults:
     target_hit: bool
 
     # DBM
-    dbm_series: Optional[PropagationSeries]
-    elapsed_time_DBM_h: Optional[float]  # Transit time [h]
-    velocity_arrival_DBM_kms: Optional[float]  # Impact speed [km/s]
-    arrival_time_DBM: Optional[datetime]
+    dbm_series: PropagationSeries | None
+    elapsed_time_DBM_h: float | None  # Transit time [h]
+    velocity_arrival_DBM_kms: float | None  # Impact speed [km/s]
+    arrival_time_DBM: datetime | None
 
     # MoDBM
-    modbm_series: Optional[PropagationSeries]
-    elapsed_time_MODBM_h: Optional[float]
-    velocity_arrival_MODBM_kms: Optional[float]
-    arrival_time_MODBM: Optional[datetime]
+    modbm_series: PropagationSeries | None
+    elapsed_time_MODBM_h: float | None
+    velocity_arrival_MODBM_kms: float | None
+    arrival_time_MODBM: datetime | None

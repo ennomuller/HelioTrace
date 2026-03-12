@@ -6,8 +6,6 @@ Two side-by-side panels: Distance vs. Time and Velocity vs. Time.
 
 from __future__ import annotations
 
-from typing import Optional
-
 import astropy.units as u
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -29,7 +27,7 @@ PLOT_COLORS = _COLORS
 
 def build_single_model_figure(
     series: PropagationSeries,
-    elapsed_h: Optional[float],
+    elapsed_h: float | None,
     target_distance_au: float,
     label: str,
     color: str,
@@ -166,8 +164,8 @@ def build_propagation_comparison_figure(
     )
 
     def _add_model(
-        series: Optional[PropagationSeries],
-        elapsed_h: Optional[float],
+        series: PropagationSeries | None,
+        elapsed_h: float | None,
         label: str,
         color: str,
     ) -> None:

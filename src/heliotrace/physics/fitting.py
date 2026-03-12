@@ -5,7 +5,6 @@ Linear least-squares fitting for CME Height-Time analysis.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -17,8 +16,8 @@ logger = logging.getLogger(__name__)
 def perform_linear_fit(
     x_data: ArrayLike,
     y_data: ArrayLike,
-    y_error: Optional[float | ArrayLike] = None,
-    initial_guess: Optional[list[float]] = None,
+    y_error: float | ArrayLike | None = None,
+    initial_guess: list[float] | None = None,
 ) -> dict[str, float]:
     """
     Fit a linear model ``y = m * x + b`` to the provided data.
