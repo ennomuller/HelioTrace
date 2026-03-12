@@ -8,8 +8,7 @@ which is a Python port of the IDL reference implementations:
   - cmecloud.pro       (full point cloud)
 by Andreas Thernisien (original GCS model author).
 
-All public functions use plain NumPy arrays.  ``gcs_mesh_sunpy`` is a
-notebook-only convenience wrapper and requires the optional ``sunpy`` package.
+All public functions use plain NumPy arrays.
 """
 
 from __future__ import annotations
@@ -187,61 +186,3 @@ def apex_radius(height: float, k: float) -> float:
     :return: Apex cross-section radius in the same length units as ``height``.
     """
     return k * height / (1 + k)
-
-
-# ---------------------------------------------------------------------------
-# Notebook-only: SunPy SkyCoord output (requires optional sunpy dep)
-# ---------------------------------------------------------------------------
-
-
-def gcs_mesh_sunpy(
-    date: object,
-    alpha: float,
-    height: float,
-    straight_vertices: int,
-    front_vertices: int,
-    circle_vertices: int,
-    k: float,
-    lat: float,
-    lon: float,
-    tilt: float,
-) -> object:
-    """
-    Return the GCS mesh as a SunPy ``SkyCoord`` (notebook use only).
-
-    Requires the optional ``sunpy`` package::
-
-        pip install heliotrace[notebooks]
-
-    :param date: Observation datetime (Python ``datetime`` instance).
-    :param alpha: CME half-angle [rad].
-    :param height: CME front height [R_sun].
-    :param straight_vertices: Vertices along each straight leg.
-    :param front_vertices: Vertices along the circular front.
-    :param circle_vertices: Vertices along each cross-section ring.
-    :param k: GCS aspect ratio κ.
-    :param lat: CME latitude [rad].
-    :param lon: CME longitude [rad].
-    :param tilt: CME tilt angle [rad].
-    :return: SunPy ``SkyCoord`` in ``HeliographicStonyhurst`` frame.
-    """
-    try:
-        from astropy.coordinates import SkyCoord
-        from sunpy.coordinates import frames, sun  # noqa: F401 — checked at call time
-    except ImportError as exc:
-        raise ImportError(
-            "gcs_mesh_sunpy requires sunpy. Install it with: pip install heliotrace[notebooks]"
-        ) from exc
-
-    mesh, _u, _v = gcs_mesh_rotated(
-        alpha, height, straight_vertices, front_vertices, circle_vertices, k, lat, lon, tilt
-    )
-    m = mesh.T[[2, 1, 0], :] * sun.constants.radius
-    m[1, :] *= -1
-    mesh_coord = SkyCoord(
-        *m,
-        frame=frames.HeliographicStonyhurst,
-        obstime=date,
-        representation_type="cartesian",
-    )
-    return mesh_coord

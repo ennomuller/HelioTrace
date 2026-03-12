@@ -1,7 +1,7 @@
 """
 Tests for heliotrace.physics.geometry — GCS CME mesh geometry.
 
-Groups A–F cover all 6 public functions in geometry.py with analytic benchmarks,
+Groups A–E cover all 5 public functions in geometry.py with analytic benchmarks,
 exact scaling-law probes, and boundary-condition guards.
 
 Analytic references:
@@ -15,9 +15,6 @@ Analytic references:
 
 from __future__ import annotations
 
-import sys
-import unittest.mock as mock
-
 import numpy as np
 import pytest
 
@@ -25,7 +22,6 @@ from heliotrace.physics.geometry import (
     apex_radius,
     gcs_mesh,
     gcs_mesh_rotated,
-    gcs_mesh_sunpy,
     rotate_mesh,
     skeleton,
 )
@@ -386,58 +382,3 @@ def test_apex_radius_monotone_in_k() -> None:
         assert radii[i] < radii[i + 1], (
             f"apex_radius({k_values[i]})={radii[i]:.6f} >= apex_radius({k_values[i + 1]})={radii[i + 1]:.6f}"
         )
-
-
-# ---------------------------------------------------------------------------
-# Group F — gcs_mesh_sunpy (2 tests)
-# ---------------------------------------------------------------------------
-
-
-def test_gcs_mesh_sunpy_import_error_message() -> None:
-    """When sunpy is not importable, calling gcs_mesh_sunpy raises ImportError
-    whose message contains 'heliotrace[notebooks]'."""
-    patch = {
-        "sunpy": None,
-        "sunpy.coordinates": None,
-        "sunpy.coordinates.frames": None,
-    }
-    with mock.patch.dict(sys.modules, patch):
-        with pytest.raises(ImportError) as exc:
-            gcs_mesh_sunpy(
-                object(),
-                _ALPHA,
-                _HEIGHT,
-                _SV,
-                _FV,
-                _CV,
-                _KAPPA,
-                0.0,
-                0.0,
-                0.0,
-            )
-        assert "heliotrace[notebooks]" in str(exc.value), (
-            f"ImportError message does not contain 'heliotrace[notebooks]': {exc.value}"
-        )
-
-
-def test_gcs_mesh_sunpy_returns_skycoord_if_available() -> None:
-    """When sunpy is available, gcs_mesh_sunpy returns an astropy SkyCoord instance."""
-    import datetime
-
-    from astropy.coordinates import SkyCoord
-
-    pytest.importorskip("sunpy")
-    date = datetime.datetime(2023, 10, 28, 12, 0, 0)
-    result = gcs_mesh_sunpy(
-        date,
-        _ALPHA,
-        _HEIGHT,
-        _SV,
-        _FV,
-        _CV,
-        _KAPPA,
-        0.0,
-        0.0,
-        0.0,
-    )
-    assert isinstance(result, SkyCoord), f"Expected SkyCoord, got {type(result)}"

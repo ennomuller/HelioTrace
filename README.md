@@ -19,66 +19,29 @@ Built on research from a Master's Thesis at the University of Göttingen — see
 
 ---
 
-## Quick Start — Docker
+## Installation
 
-The fastest way to run the app with zero local setup:
+### Docker — quickest
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/ennomuller/HelioTrace.git
-cd HelioTrace
-
-# 2. Start the app
-docker-compose up
+docker compose up
 ```
 
-Then open [http://localhost:8501](http://localhost:8501) in your browser.
+Open [http://localhost:8501](http://localhost:8501) in your browser.
 
-For a live-reload development session:
+### Local — uv (recommended)
 
 ```bash
-docker-compose --profile dev up
+uv sync --no-dev
+uv run streamlit run app.py
 ```
 
----
-
-## Local Development
-
-### 1. Clone the repository
+### Local — pip (legacy)
 
 ```bash
-git clone https://github.com/ennomuller/HelioTrace.git
-cd HelioTrace
-```
-
-### 2. Install the package
-
-```bash
-# Create and activate a virtual environment (recommended)
-python -m venv .venv
-source .venv/bin/activate      # macOS / Linux
-.venv\Scripts\activate         # Windows PowerShell
-
-# Core app
-pip install -e .
-
-# With notebook extras (sunpy, matplotlib)
-pip install -e ".[notebooks]"
-
-# With dev/test extras
-pip install -e ".[dev]"
-```
-
-### 3. Run the app
-
-```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install .
 streamlit run app.py
-```
-
-### 4. Run tests
-
-```bash
-pytest
 ```
 
 ---
@@ -134,5 +97,10 @@ See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for full details.
 | [SciPy](https://scipy.org)           | ODE integration, triangulation, linear algebra |
 | [NumPy](https://numpy.org)           | Numerical arrays                               |
 | [Astropy](https://www.astropy.org)   | Units and physical constants                   |
-| [SunPy](https://sunpy.org)           | Solar coordinate frames (optional)             |
 | [Pandas](https://pandas.pydata.org)  | Tabular data handling                          |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
