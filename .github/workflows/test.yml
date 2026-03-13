@@ -19,13 +19,13 @@ jobs:
         resolution: ["locked"]
         include:
           - python-version: "3.14"
-            resolution: "latest"
+            resolution: "highest"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
@@ -34,9 +34,9 @@ jobs:
         if: matrix.resolution == 'locked'
         run: uv sync
 
-      - name: Install dependencies (latest)
-        if: matrix.resolution == 'latest'
-        run: uv sync --resolution=latest
+      - name: Install dependencies (highest)
+        if: matrix.resolution == 'highest'
+        run: uv sync --resolution=highest
         continue-on-error: true
 
       - name: Check formatting (Ruff)
@@ -58,6 +58,6 @@ jobs:
   docker-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Test Docker Build
         run: docker compose build
