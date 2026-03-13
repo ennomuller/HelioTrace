@@ -22,9 +22,9 @@ Thesis at Georg-August-University Göttingen.
   via least-squares fitting.
 - **Apex Ratio** — Compute the geometric ratio that maps the CME apex speed to the
   target-directed component (Earth or arbitrary target).
-- **Drag-Based Model (DBM)** — Analytical propagation solution (Vršnak et al. 2013)
-  with constant solar wind speed.
-- **Modified DBM (MoDBM)** — Numerically integrated propagation featuring
+- **Drag-Based Model (DBM)** — ODE-integrated propagation solution (Vršnak et al. 2013)
+  with constant solar wind speed and drag parameter.
+- **Modified DBM (MoDBM)** — Numerically integrated propagation (Müller 2025) featuring
   distance- and SSN-dependent solar wind profiles (Venzmer & Bothmer 2018),
   extending the standard DBM to variable solar wind conditions.
 - **Hit/Miss Detection** — Geometric check determining whether a reconstructed CME
@@ -36,36 +36,44 @@ Thesis at Georg-August-University Göttingen.
 
 - Streamlit-based interactive web app (`app.py`) with declarative multi-page navigation.
 - Sidebar-driven input controls for GCS parameters, observations, and propagation settings.
-- Tab 1: interactive 3D GCS flux-rope visualization (Plotly, grid wireframe rendering).
-- Tab 2: height-time plot with kinematic fit overlay and projection indicators.
-- Tab 3: side-by-side DBM / MoDBM trajectory and kinematics comparison plots.
+- Tab 1 ("GCS Geometry & Height-Time"): 3D GCS flux-rope visualization (Plotly, grid wireframe
+  rendering) with hit/miss indicator, followed by the height-time diagram with linear fit overlay,
+  ±velocity uncertainty, χ², and apex velocity / projection ratio / v₀ metrics.
+- Tab 2 ("Propagation Results"): side-by-side DBM and MoDBM result panels (arrival time, transit
+  time, impact speed), individual single-model trajectory plots, and a full-width combined
+  comparison figure overlaying both model trajectories.
 - Propagation results panel with ToA, transit time, and arrival speed for both models.
 - Fill-example sidebar button for quick demonstration with a pre-loaded event.
-- Free-form event label (replaces the previous YYYYMMDD-only constraint).
-- Tab10 color palette and responsive plot sizing for consistent visual style.
+- Free-form event label.
+- Tab10 color palette and responsive plot sizing.
 
 #### Infrastructure
 
 - `src/heliotrace/` package layout with `physics/`, `models/`, `simulation/`, and `ui/` sub-packages.
-- Pydantic-based data schemas (`models/schemas.py`) for validated parameter passing.
+- Python dataclass-based data schemas (`models/schemas.py`) for validated parameter passing.
 - Simulation runner (`simulation/runner.py`) decoupling physics from the UI layer.
-- Centralized configuration (`config.py`) for physical constants and app defaults.
+- Centralized configuration (`config.py`) for app defaults, target presets, and default observation data.
 - Docker and Docker Compose setup for zero-config deployment and live-reload dev mode.
 - `uv`-managed dependency locking (`uv.lock`) for reproducible environments.
-- `pip install -e ".[dev]"` extras for development and testing.
+- `uv sync --group dev` for development environment setup (pytest, ruff, pyright).
 
 #### Testing
 
-- Analytic test suite for `drag.py` — 39 functions covering DBM/MoDBM edge cases,
-  unit consistency, ODE stability, and closed-form solutions.
+- Analytic test suite for `drag.py` (`test_drag.py`) — 39 functions covering DBM/MoDBM edge cases, unit consistency, ODE stability, and closed-form solutions.
+- Simulation runner test suite (`test_runner.py`) — 47 tests across 12 groups (A–L) covering
+  slope recovery, unit conversion, geometric miss, coasting benchmarks, override propagation,
+  monotone scaling, and reference event regression.
+- End-to-end smoke tests (`test_smoke.py`) — module import verification and reference event
+  regression for the 2023-10-28 CME event (apex velocity ≈ 773 km/s, DBM transit ≈ 69.4 h).
 - `test_geometry.py` — GCS geometry correctness checks.
-- `test_fitting.py` — Kinematic fitting regression tests.
+- `test_fitting.py` — Kinematic fitting analytic benchmarks.
 - `test_apex_ratio.py` — Apex ratio boundary and correctness tests.
 
 #### Documentation
 
 - README with science background, four-step physics workflow, model reference table,
   quick-start (Docker) and local development instructions.
+- `CONTRIBUTING.md` with development setup and contribution guidelines.
 - `THIRD_PARTY_LICENSES.md` attributing the GCS geometry code adapted from
   [gcs_python](https://github.com/johan12345/gcs_python) by Johan von Forstner.
 - MIT License.
