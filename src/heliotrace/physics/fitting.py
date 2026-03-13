@@ -44,6 +44,10 @@ def perform_linear_fit(
             if np.isscalar(y_error)
             else np.asarray(y_error, dtype=float)
         )
+        if np.all(sigma == 0):
+            y_error = None
+
+    if y_error is not None:
         popt, pcov = curve_fit(
             _linear,
             x_data,
