@@ -6,7 +6,7 @@
 # Compose: docker compose up
 # ---------------------------------------------------------------------------
 
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # --- Install uv from the official image ---
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/

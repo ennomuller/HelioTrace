@@ -15,7 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12", "3.13", "3.14"] # test without "3.14" locally, numpy,pandas wheels mssing
+        resolution: ["locked"]
+        include:
+          - python-version: "3.14"
+            resolution: "latest"
 
     steps:
       - uses: actions/checkout@v4
@@ -26,8 +30,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
 
-      - name: Install dependencies
+      - name: Install dependencies (locked)
+        if: matrix.resolution == 'locked'
         run: uv sync
+
+      - name: Install dependencies (latest)
+        if: matrix.resolution == 'latest'
+        run: uv sync --resolution=latest
+        continue-on-error: true
 
       - name: Check formatting (Ruff)
         run: uv run ruff format --check .
@@ -42,7 +52,7 @@ jobs:
         run: uv run pytest --cov=src/heliotrace --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Job Summary
-        if: matrix.python-version == '3.11' # Only run once
+        if: matrix.python-version == '3.12' && matrix.resolution == 'locked'
         run: uv run coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
 
   docker-check:
