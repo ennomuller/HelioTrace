@@ -13,6 +13,7 @@ import pandas as pd
 import streamlit as st
 
 from heliotrace.config import DEFAULT_OBS_ROWS, TARGET_PRESETS
+from heliotrace.i18n import t
 from heliotrace.models.schemas import GCSParams, SimulationConfig, TargetConfig
 
 # ---------------------------------------------------------------------------
@@ -72,14 +73,14 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
     :return: ``(SimulationConfig, GCSParams, pd.DataFrame, bool, bool)``
     """
     with st.sidebar:
-        st.title("⚙️ Configuration")
+        st.title(t("sidebar.title"))
 
         # ---- Fill with example ------------------------------------------ #
         if st.button(
-            "⚡ Fill with example",
+            t("sidebar.fill_example"),
             type="primary",
             width="content",
-            help="Auto-fill all fields with the 2023-10-28 Halloween CME event.",
+            help=t("sidebar.fill_example_help"),
         ):
             _fill_example()
 
@@ -87,13 +88,13 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         # ------------------------------------------------------------------ #
         # 1. Event Information
         # ------------------------------------------------------------------ #
-        st.subheader("📅 Event Info")
+        st.subheader(t("sidebar.event_title"))
 
         event_str = st.text_input(
-            "Event Label",
+            t("sidebar.event_label"),
             key="sb_event_str",
-            placeholder="e.g. Halo CME · 2023-10-28",
-            help="Free-form label used in plot titles and descriptions (max 40 characters).",
+            placeholder=t("sidebar.event_placeholder"),
+            help=t("sidebar.event_help"),
         )
         event_str_clean = (event_str or "").strip()[:40] or "unknown"
 
@@ -101,30 +102,45 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         # ------------------------------------------------------------------ #
         # 2. Target Configuration
         # ------------------------------------------------------------------ #
-        st.subheader("🎯 Target")
+        st.subheader(t("sidebar.target_title"))
 
         preset_names = list(TARGET_PRESETS.keys())
         preset_choice = st.selectbox(
-            "Target body",
+            t("sidebar.target_body"),
             options=preset_names,
             index=0,
-            help="Select a preconfigured target, or choose 'Custom' to enter coordinates manually.",
+            help=t("sidebar.target_body_help"),
         )
 
         is_custom = TARGET_PRESETS[preset_choice] is None
         preset_vals: dict[str, float] = TARGET_PRESETS.get(preset_choice) or {}  # type: ignore[assignment]
 
         if is_custom:
-            target_name = st.text_input("Target name", value="Custom")
+            target_name = st.text_input(t("sidebar.target_name"), value="Custom")
             cc1, cc2 = st.columns(2)
             target_lon = cc1.number_input(
-                "Lon [deg]", value=0.0, min_value=-180.0, max_value=180.0, step=0.5, format="%.1f"
+                t("sidebar.target_lon"),
+                value=0.0,
+                min_value=-180.0,
+                max_value=180.0,
+                step=0.5,
+                format="%.1f",
             )
             target_lat = cc2.number_input(
-                "Lat [deg]", value=0.0, min_value=-90.0, max_value=90.0, step=0.5, format="%.1f"
+                t("sidebar.target_lat"),
+                value=0.0,
+                min_value=-90.0,
+                max_value=90.0,
+                step=0.5,
+                format="%.1f",
             )
             target_dist = st.number_input(
-                "Distance [AU]", value=1.0, min_value=0.01, max_value=5.0, step=0.01, format="%.3f"
+                t("sidebar.target_dist"),
+                value=1.0,
+                min_value=0.01,
+                max_value=5.0,
+                step=0.01,
+                format="%.3f",
             )
         else:
             target_name = preset_choice.split(" (")[0]
@@ -132,7 +148,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             target_lat = preset_vals["lat"]
             target_dist = preset_vals["distance"]
             st.caption(
-                f"Lon: **{target_lon}°** | Lat: **{target_lat}°** | Distance: **{target_dist} AU**"
+                t("sidebar.target_caption").format(lon=target_lon, lat=target_lat, dist=target_dist)
             )
 
         target = TargetConfig(
@@ -146,26 +162,26 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         # ------------------------------------------------------------------ #
         # 3. GCS Geometrical Parameters
         # ------------------------------------------------------------------ #
-        st.subheader("🐚 GCS Parameters")
+        st.subheader(t("sidebar.gcs_title"))
 
         c_lon, c_lat, c_tilt = st.columns(3)
         gcs_lon_str = c_lon.text_input(
-            "Lon 𝝓 [deg]",
-            placeholder="[-180, 180]",
+            t("sidebar.gcs_lon"),
+            placeholder=t("sidebar.gcs_lon_placeholder"),
             key="sb_gcs_lon",
-            help="Stonyhurst heliographic longitude 𝝓 of the CME source region [deg].",
+            help=t("sidebar.gcs_lon_help"),
         )
         gcs_lat_str = c_lat.text_input(
-            "Lat 𝜽 [deg]",
-            placeholder="[-90, 90]",
+            t("sidebar.gcs_lat"),
+            placeholder=t("sidebar.gcs_lat_placeholder"),
             key="sb_gcs_lat",
-            help="Stonyhurst heliographic latitude 𝜽 of the CME source [deg].",
+            help=t("sidebar.gcs_lat_help"),
         )
         gcs_tilt_str = c_tilt.text_input(
-            "Tilt 𝜸 [deg]",
-            placeholder="[-90, 90]",
+            t("sidebar.gcs_tilt"),
+            placeholder=t("sidebar.gcs_tilt_placeholder"),
             key="sb_gcs_tilt",
-            help="Tilt 𝜸 of the CME flux-rope axis relative to the solar equatorial plane [deg].",
+            help=t("sidebar.gcs_tilt_help"),
         )
         gcs_lon = _parse_float(gcs_lon_str)
         gcs_lat = _parse_float(gcs_lat_str)
@@ -173,64 +189,54 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
 
         if gcs_lon is not None and not -180.0 <= gcs_lon <= 180.0:
             wrapped = (gcs_lon + 180.0) % 360.0 - 180.0
-            st.warning(
-                f"❌ Longitude 𝝓 = {gcs_lon:.1f}° is outside [-180, 180]. Wrapped to {wrapped:.1f}°."
-            )
+            st.warning(t("sidebar.gcs_lon_warn").format(lon=gcs_lon, wrapped=wrapped))
             gcs_lon = wrapped
         if gcs_lat is not None and not -90.0 <= gcs_lat <= 90.0:
             clamped = max(-90.0, min(90.0, gcs_lat))
-            st.error(
-                f"❌ Latitude 𝜽 = {gcs_lat:.1f}° is outside [-90, 90]. Clamped to {clamped:.1f}°."
-            )
+            st.error(t("sidebar.gcs_lat_err").format(lat=gcs_lat, clamped=clamped))
             gcs_lat = clamped
         if gcs_tilt is not None and not -90.0 <= gcs_tilt <= 90.0:
             clamped = max(-90.0, min(90.0, gcs_tilt))
-            st.warning(
-                f"❌ Tilt 𝜸 = {gcs_tilt:.1f}° is outside [-90, 90]. Clamped to {clamped:.1f}°."
-            )
+            st.warning(t("sidebar.gcs_tilt_warn").format(tilt=gcs_tilt, clamped=clamped))
             gcs_tilt = clamped
 
         c_ha, c_kp = st.columns(2)
         gcs_half_angle_str = c_ha.text_input(
-            "Half-angle 𝜶 [deg]",
-            placeholder="[1, 89]",
+            t("sidebar.gcs_ha"),
+            placeholder=t("sidebar.gcs_ha_placeholder"),
             key="sb_gcs_half_angle",
-            help="GCS half-angle 𝜶: angular half-width of the CME shell [deg]. Valid: (0°, 90°). Typical: 5–60°.",
+            help=t("sidebar.gcs_ha_help"),
         )
         gcs_kappa_str = c_kp.text_input(
-            "Aspect ratio 𝜿",
-            placeholder="[0.01, 0.99]",
+            t("sidebar.gcs_kappa"),
+            placeholder=t("sidebar.gcs_kappa_placeholder"),
             key="sb_gcs_kappa",
-            help="GCS aspect ratio 𝜿: cross-section radius / apex distance. Valid: (0, 1). Typical: 0.15–0.7.",
+            help=t("sidebar.gcs_kappa_help"),
         )
         gcs_half_angle = _parse_float(gcs_half_angle_str)
         gcs_kappa = _parse_float(gcs_kappa_str)
 
         if gcs_half_angle is not None:
             if gcs_half_angle <= 0.0:
-                st.error("❌ Half-angle 𝜶 must be > 0°. Clamped to 1°.")
+                st.error(t("sidebar.gcs_ha_err_lo"))
                 gcs_half_angle = 1.0
             elif gcs_half_angle >= 90.0:
-                st.error("❌ Half-angle 𝜶 must be < 90°. Clamped to 89.99°.")
+                st.error(t("sidebar.gcs_ha_err_hi"))
                 gcs_half_angle = 89.99
-            # elif not 5.0 <= gcs_half_angle <= 60.0:
-            #     st.info("ℹ️ Half-angle is outside the typical range 5–60°.")
         if gcs_kappa is not None:
             if gcs_kappa >= 1.0:
-                st.error("❌ Aspect ratio 𝜿 must be < 1. Clamped to 0.99.")
+                st.error(t("sidebar.gcs_kappa_err_hi"))
                 gcs_kappa = 0.99
             elif gcs_kappa <= 0.0:
-                st.error("❌ Aspect ratio 𝜿 must be > 0. Clamped to 0.01.")
+                st.error(t("sidebar.gcs_kappa_err_lo"))
                 gcs_kappa = 0.01
-            # elif not 0.15 <= gcs_kappa <= 0.7:
-            #     st.info("ℹ️ Aspect ratio 𝜿 is outside the typical range 0.15–0.7.")
 
         st.divider()
         # ------------------------------------------------------------------ #
         # 4. Observation Table
         # ------------------------------------------------------------------ #
-        st.subheader("📋 Observations")
-        st.caption("CME apex heights from coronagraph images.")
+        st.subheader(t("sidebar.obs_title"))
+        st.caption(t("sidebar.obs_caption"))
 
         counter = st.session_state.get("sb_editor_counter", 0)
         obs_init = pd.DataFrame(DEFAULT_OBS_ROWS) if counter > 0 else _EMPTY_OBS_DF
@@ -242,18 +248,18 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             width="content",
             column_config={
                 "datetime": st.column_config.DatetimeColumn(
-                    "Time (UTC)",
+                    t("sidebar.obs_time_col"),
                     required=True,
                     format="YYYY-MM-DD HH:mm",
-                    help="UTC observation timestamp from the coronagraph image on which the fit was performed.",
+                    help=t("sidebar.obs_time_help"),
                 ),
                 "height": st.column_config.NumberColumn(
-                    "Height 𝒓 [R☉]",
+                    t("sidebar.obs_height_col"),
                     min_value=0.1,
                     max_value=300.0,
                     step=0.1,
                     format="%.2f",
-                    help="Fitted CME apex height in solar radii [R☉].",
+                    help=t("sidebar.obs_height_help"),
                 ),
             },
             key=f"obs_editor_{counter}",
@@ -261,102 +267,97 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
 
         valid_obs = len(obs_df.dropna(subset=["datetime", "height"]))
         if valid_obs < 2:
-            st.caption(f"ℹ️ Need ≥2 observations for H-T fit. ({valid_obs} so far)")
+            st.caption(t("sidebar.obs_need_more").format(n=valid_obs))
         else:
-            st.caption(f"✓ {valid_obs} valid observations.")
+            st.caption(t("sidebar.obs_valid").format(n=valid_obs))
 
-        with st.expander("⚙️ Advanced"):
+        with st.expander(t("sidebar.advanced")):
             height_error_str: str = st.text_input(
-                "Height error ± [R☉]",
+                t("sidebar.height_error"),
                 value="0.25",
                 key="sb_height_error",
-                help="Symmetric ±uncertainty applied to every height measurement [R☉].",
+                help=t("sidebar.height_error_help"),
             )
             _height_error_parsed = _parse_float(height_error_str, default=0.25)
             if _height_error_parsed is None:
-                st.warning("⚠️ Invalid height error — using default 0.25 R☉.")
+                st.warning(t("sidebar.height_error_warn"))
                 _height_error_parsed = 0.25
             elif _height_error_parsed < 0.0:
                 st.warning(
-                    f"⚠️ Height error must be ≥ 0. "
-                    f"Using |{_height_error_parsed}| = {abs(_height_error_parsed)} R☉."
+                    t("sidebar.height_error_neg_warn").format(
+                        val=_height_error_parsed, abs_val=abs(_height_error_parsed)
+                    )
                 )
                 _height_error_parsed = abs(_height_error_parsed)
             elif _height_error_parsed == 0.0:
-                st.info(
-                    "ℹ️ Height error = 0 R☉: all observations treated as exact (unweighted fit)."
-                )
+                st.info(t("sidebar.height_error_zero_info"))
             height_error: float = _height_error_parsed
 
         st.divider()
         # ------------------------------------------------------------------ #
         # 5. Drag Model Parameters
         # ------------------------------------------------------------------ #
-        st.subheader("🪂 Drag Parameters")
+        st.subheader(t("sidebar.drag_title"))
 
-        st.markdown("**DBM only**")
+        st.markdown(t("sidebar.dbm_only"))
         st.session_state.setdefault("sb_w", 390)
         w = st.slider(
-            "Solar wind speed w [km/s]",
+            t("sidebar.wind_speed"),
             min_value=250,
             max_value=700,
             key="sb_w",
             step=10,
-            help="Constant ambient solar wind speed used by the standard DBM.",
+            help=t("sidebar.wind_speed_help"),
         )
 
-        st.markdown("**MoDBM only**")
+        st.markdown(t("sidebar.modbm_only"))
         w_type = st.radio(
-            "Solar wind regime",
+            t("sidebar.wind_regime"),
             options=["slow", "fast"],
             key="sb_w_type",
             horizontal=True,
-            help="Venzmer & Bothmer (2018) background wind profile.",
+            help=t("sidebar.wind_regime_help"),
         )
         st.session_state.setdefault("sb_ssn", 100)
         ssn = st.slider(
-            "Smoothed SSN",
+            t("sidebar.ssn"),
             min_value=0,
             max_value=300,
             key="sb_ssn",
             step=1,
-            help="Monthly smoothed total sunspot number for the MoDBM density profile.",
+            help=t("sidebar.ssn_help"),
         )
 
         # ------------------------------------------------------------------ #
         # 6. Advanced / Optional
         # ------------------------------------------------------------------ #
-        with st.expander("⚙️ Advanced"):
-            st.caption("Drag settings")
+        with st.expander(t("sidebar.advanced")):
+            st.caption(t("sidebar.drag_settings"))
             c_d_str: str = st.text_input(
-                "Drag coefficient c_d",
+                t("sidebar.c_d"),
                 value="1.0",
                 key="sb_c_d",
-                help=(
-                    "Dimensionless drag coefficient (converges to ~1 beyond ~12 R☉, Cargill 2004)."
-                ),
+                help=t("sidebar.c_d_help"),
             )
             _c_d_parsed = _parse_float(c_d_str, default=1.0)
             if _c_d_parsed is None:
-                st.warning("⚠️ Invalid drag coefficient — using default 1.0.")
+                st.warning(t("sidebar.c_d_warn"))
                 _c_d_parsed = 1.0
             elif _c_d_parsed <= 0.0:
-                st.error("❌ Drag coefficient must be > 0. Clamped to 0.01.")
+                st.error(t("sidebar.c_d_err"))
                 _c_d_parsed = 0.01
             elif _c_d_parsed > 5.0:
-                st.info(
-                    f"ℹ️ c_d = {_c_d_parsed} is on the high end (typical: 0.5–2.0, Cargill 2004)."
-                )
+                st.info(t("sidebar.c_d_info").format(val=_c_d_parsed))
             c_d: float = _c_d_parsed
 
             st.divider()
-            st.caption("Optional overrides")
+            st.caption(t("sidebar.optional_overrides"))
             toa_raw: str | None = (
                 st.text_input(
-                    "Expected arrival time (optional)",
+                    t("sidebar.toa"),
                     key="sb_toa_raw",
-                    placeholder="DD/MM/YYYY HH:MM:SS",
-                    help="Observed/predicted arrival for comparison. Leave blank to skip.",
+                    placeholder=t("sidebar.toa_placeholder"),
+                    help=t("sidebar.toa_help"),
                 )
                 or None
             )
@@ -364,37 +365,33 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             if toa_raw:
                 try:
                     datetime.strptime(toa_raw, "%d/%m/%Y %H:%M:%S")
-                    st.success("✓ Valid arrival time format")
+                    st.success(t("sidebar.toa_valid"))
                 except ValueError:
-                    st.warning("⚠ Expected format: DD/MM/YYYY HH:MM:SS")
+                    st.warning(t("sidebar.toa_invalid"))
                     toa_raw = None
 
             m_override_raw: float = st.number_input(
-                "CME mass override [g]  (0 = Pluta formula)",
+                t("sidebar.mass_override"),
                 value=0.0,
                 min_value=0.0,
                 format="%.2e",
-                help="Override the Pluta (2018) mass formula. Enter 0 to keep the formula.",
+                help=t("sidebar.mass_override_help"),
             )
             m_override_g: float | None = m_override_raw if m_override_raw > 0.0 else None
 
             v0_override_str: str = st.text_input(
-                "v₀ override [km/s]  (blank = geometry-derived)",
+                t("sidebar.v0_override"),
                 key="sb_v0_override",
-                placeholder="e.g. 600",
-                help="Hard override for the CME velocity component directed at the target. "
-                r"Replaces the geometry-derived $v_0 = v_{\rm apex} \times$ projection ratio.",
+                placeholder=t("sidebar.v0_override_placeholder"),
+                help=t("sidebar.v0_override_help"),
             )
             v0_override_kms: float | None = _parse_float(v0_override_str)
             if v0_override_kms is not None:
                 if v0_override_kms <= 0.0:
-                    st.error("❌ v₀ override must be > 0 km/s. Override ignored.")
+                    st.error(t("sidebar.v0_override_err"))
                     v0_override_kms = None
                 elif v0_override_kms > 3000.0:
-                    st.info(
-                        f"ℹ️ v₀ = {v0_override_kms:.0f} km/s is above the fastest CME on record "
-                        f"(~3000 km/s)."
-                    )
+                    st.info(t("sidebar.v0_override_info").format(v0=v0_override_kms))
 
         st.divider()
 
@@ -402,7 +399,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         # 7. Run button
         # ------------------------------------------------------------------ #
         run_clicked: bool = st.button(
-            "▶ Run Simulation",
+            t("sidebar.run_simulation"),
             type="primary",
             width="content",
         )

@@ -9,6 +9,8 @@ from datetime import timedelta
 import pandas as pd
 import plotly.graph_objects as go
 
+from heliotrace.i18n import t
+
 
 def build_ht_figure(
     df: pd.DataFrame,
@@ -48,7 +50,7 @@ def build_ht_figure(
             x=df["datetime"],
             y=df["height"],
             mode="markers",
-            name="GCS heights",
+            name=t("plot.ht.gcs_heights"),
             error_y=dict(type="constant", value=height_error, visible=True, thickness=1.5, width=5),
             marker=dict(color="#d62728", size=9, symbol="circle"),
             hovertemplate="<b>%{x|%Y-%m-%d %H:%M}</b><br>Height: %{y:.2f} R<sub>☉</sub><extra></extra>",
@@ -60,7 +62,7 @@ def build_ht_figure(
             x=t_range,
             y=fit_heights,
             mode="lines",
-            name=f"Linear fit (χ² = {chi_squared:.2f})",
+            name=t("plot.ht.linear_fit").format(chi=chi_squared),
             line=dict(color="#1f77b4", width=2),
             hovertemplate="Fit: %{y:.2f} R<sub>☉</sub><extra></extra>",
         )
@@ -81,8 +83,8 @@ def build_ht_figure(
     )
 
     fig.update_layout(
-        xaxis_title="Date & Time [UT]",
-        yaxis_title="CME Front Height [R<sub>☉</sub>]",
+        xaxis_title=t("plot.ht.xaxis"),
+        yaxis_title=t("plot.ht.yaxis"),
         xaxis_title_font=dict(size=14),
         yaxis_title_font=dict(size=14),
         legend=dict(

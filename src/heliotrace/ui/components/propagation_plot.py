@@ -10,6 +10,7 @@ import astropy.units as u
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from heliotrace.i18n import t
 from heliotrace.models.schemas import PropagationSeries, SimulationResults
 
 _AU_IN_RSUN: float = float((1 * u.AU).to(u.R_sun).value)
@@ -58,7 +59,7 @@ def build_single_model_figure(
             x=series.t_hours,
             y=series.r_rsun,
             mode="lines",
-            name=f"Distance [R\u2609] ({label})",
+            name=t("plot.prop.distance").format(label=label),
             line=dict(color=color, width=2.5),
             hovertemplate=f"t = %{{x:.1f}} h<br>r = %{{y:.0f}} R\u2609<extra>{label}</extra>",
         ),
@@ -70,7 +71,7 @@ def build_single_model_figure(
             x=series.t_hours,
             y=series.v_kms,
             mode="lines",
-            name=f"Velocity [km/s] ({label})",
+            name=t("plot.prop.velocity").format(label=label),
             line=dict(color=color, width=2, dash="dash"),
             hovertemplate=f"t = %{{x:.1f}} h<br>v = %{{y:.0f}} km/s<extra>{label}</extra>",
         ),
@@ -87,7 +88,7 @@ def build_single_model_figure(
         yref="y",
         x=0.5,
         y=target_rsun,
-        text=f"Target ({target_distance_au:.2f} AU)",
+        text=t("plot.prop.target_ref").format(dist=target_distance_au),
         showarrow=False,
         xanchor="center",
         yanchor="bottom",
@@ -99,7 +100,7 @@ def build_single_model_figure(
         fig.add_vline(
             x=elapsed_h,
             line=dict(color=_COLORS["arrival"], width=1.5, dash="dash"),
-            annotation_text=f"Arrival {elapsed_h:.1f} h",
+            annotation_text=t("plot.prop.arrival_annotation").format(elapsed=elapsed_h),
             annotation_position="top left",
             annotation_font_size=12,
             annotation_font_color=_COLORS["arrival"],
@@ -107,10 +108,10 @@ def build_single_model_figure(
         )
 
     _ax = dict(showgrid=True, gridcolor="#eee", title_font=dict(size=13), tickfont=dict(size=11))
-    fig.update_xaxes(title_text="Propagation Time [h]", **_ax)
-    fig.update_yaxes(title_text="Distance from Sun [R<sub>☉</sub>]", secondary_y=False, **_ax)
+    fig.update_xaxes(title_text=t("plot.prop.xaxis"), **_ax)
+    fig.update_yaxes(title_text=t("plot.prop.dist_yaxis"), secondary_y=False, **_ax)
     fig.update_yaxes(
-        title_text="Radial Velocity [km/s]",
+        title_text=t("plot.prop.vel_yaxis"),
         secondary_y=True,
         showgrid=False,
         title_font=dict(size=13),
@@ -158,7 +159,7 @@ def build_propagation_comparison_figure(
     fig = make_subplots(
         rows=1,
         cols=2,
-        subplot_titles=("Distance vs. Time", "Velocity vs. Time"),
+        subplot_titles=(t("plot.prop.dist_vs_time"), t("plot.prop.vel_vs_time")),
         shared_xaxes=False,
         horizontal_spacing=0.10,
     )
@@ -221,7 +222,7 @@ def build_propagation_comparison_figure(
         yref="y",
         x=0.225,
         y=target_rsun,
-        text=f"Target ({target_distance_au:.2f} AU)",
+        text=t("plot.prop.target_ref").format(dist=target_distance_au),
         showarrow=False,
         xanchor="center",
         yanchor="bottom",
@@ -243,7 +244,7 @@ def build_propagation_comparison_figure(
             line=dict(color=_COLORS["DBM"], width=1.5, dash="dash"),
             row=1,
             col=2,
-            annotation_text="DBM arrival",
+            annotation_text=t("plot.prop.dbm_arrival"),
             annotation_position=dbm_pos,
             annotation_font_size=13,
             annotation_font_color=_COLORS["DBM"],
@@ -259,19 +260,17 @@ def build_propagation_comparison_figure(
             line=dict(color=_COLORS["MODBM"], width=1.5, dash="dash"),
             row=1,
             col=2,
-            annotation_text="MoDBM arrival",
+            annotation_text=t("plot.prop.modbm_arrival"),
             annotation_position=modbm_pos,
             annotation_font_size=13,
             annotation_font_color=_COLORS["MODBM"],
         )
 
     _ax = dict(showgrid=True, gridcolor="#eee", title_font=dict(size=13), tickfont=dict(size=12))
-    fig.update_xaxes(title_text="Propagation Time [h]", **_ax)
+    fig.update_xaxes(title_text=t("plot.prop.xaxis"), **_ax)
     fig.update_yaxes(showgrid=True, gridcolor="#eee", tickfont=dict(size=12))
-    fig.update_yaxes(
-        title_text="Distance from Sun [R<sub>☉</sub>]", title_font=dict(size=13), row=1, col=1
-    )
-    fig.update_yaxes(title_text="Radial Velocity [km/s]", title_font=dict(size=13), row=1, col=2)
+    fig.update_yaxes(title_text=t("plot.prop.dist_yaxis"), title_font=dict(size=13), row=1, col=1)
+    fig.update_yaxes(title_text=t("plot.prop.vel_yaxis"), title_font=dict(size=13), row=1, col=2)
 
     fig.update_layout(
         hovermode="x unified",

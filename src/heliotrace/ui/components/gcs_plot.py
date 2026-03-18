@@ -10,6 +10,7 @@ from __future__ import annotations
 import numpy as np
 import plotly.graph_objects as go
 
+from heliotrace.i18n import t
 from heliotrace.physics.geometry import gcs_mesh_rotated
 
 
@@ -88,7 +89,7 @@ def build_gcs_figure(
             z=wz,
             mode="lines",
             line=dict(color="#1f77b4", width=1),  # tab10 blue
-            name="GCS wireframe",
+            name=t("plot.gcs.wireframe"),
             hoverinfo="skip",
         )
     )
@@ -102,7 +103,7 @@ def build_gcs_figure(
                 z=[0, projection_ratio],
                 mode="lines",
                 line=dict(color="#ff7f0e", width=5),  # tab10 green
-                name=f"Sun → {target_name} (inside CME)",
+                name=t("plot.gcs.sun_to_target_inside").format(target=target_name),
             )
         )
         fig.add_trace(
@@ -112,7 +113,7 @@ def build_gcs_figure(
                 z=[projection_ratio, 1.0],
                 mode="lines",
                 line=dict(color="#d62728", width=5),  # tab10 red
-                name=f"Sun → {target_name} (outside CME)",
+                name=t("plot.gcs.sun_to_target_outside").format(target=target_name),
             )
         )
         fig.add_trace(
@@ -122,7 +123,7 @@ def build_gcs_figure(
                 z=[projection_ratio],
                 mode="markers",
                 marker=dict(color="#d62728", size=8, symbol="circle"),  # tab10 red
-                name=f"Projection point ({target_name}): {projection_ratio:.4f}",
+                name=t("plot.gcs.proj_point").format(target=target_name, ratio=projection_ratio),
             )
         )
     else:
@@ -133,7 +134,7 @@ def build_gcs_figure(
                 z=[0, 1.0],
                 mode="lines",
                 line=dict(color="#7f7f7f", width=3, dash="dash"),  # tab10 gray
-                name=f"{target_name} direction (MISS)",
+                name=t("plot.gcs.target_miss").format(target=target_name),
             )
         )
 
@@ -156,7 +157,7 @@ def build_gcs_figure(
                 tickfont=dict(size=11),
             ),
             zaxis=dict(
-                title=f"Z \u2192 {target_name}",
+                title=t("plot.gcs.zaxis").format(target=target_name),
                 range=[0, 1.1],
                 showgrid=True,
                 gridcolor="#ddd",

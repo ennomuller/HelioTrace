@@ -22,6 +22,7 @@ def init_session_state() -> None:
     defaults: dict = {
         KEY_SIM_RESULTS: None,
         KEY_SIM_CONFIG: None,
+        "lang": "en",
     }
     for key, value in defaults.items():
         if key not in st.session_state:

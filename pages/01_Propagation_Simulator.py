@@ -15,6 +15,7 @@ import pandas as pd
 import streamlit as st
 
 from heliotrace.config import KEY_SIM_CONFIG, KEY_SIM_RESULTS
+from heliotrace.i18n import render_lang_toggle, t
 from heliotrace.models.schemas import (
     DerivedGCSParams,
     SimulationConfig,
@@ -95,15 +96,17 @@ def _mini_metric(
 # ---------------------------------------------------------------------------
 init_session_state()
 config, gcs_params, obs_df, run_clicked, gcs_params_entered = render_sidebar()
+render_lang_toggle(t("page.sim.title"))
 
 # ---------------------------------------------------------------------------
 # Page header
 # ---------------------------------------------------------------------------
-st.title("🚀 Propagation Simulator")
 st.caption(
-    f"Event: **{config.event_str}** | "
-    f"Target: **{config.target.name}** ({config.target.distance:.2f} AU) | "
-    f"Models: DBM · MoDBM"
+    t("page.sim.caption").format(
+        event=config.event_str,
+        target=config.target.name,
+        dist=config.target.distance,
+    )
 )
 
 # ---------------------------------------------------------------------------
@@ -131,7 +134,7 @@ else:
 # ---------------------------------------------------------------------------
 # Main tabs
 # ---------------------------------------------------------------------------
-tab1, tab2 = st.tabs(["📡 GCS Geometry & Height-Time", "📈 Propagation Results"])
+tab1, tab2 = st.tabs([t("page.sim.tab_gcs"), t("page.sim.tab_prop")])
 
 
 # ============================================================
@@ -141,19 +144,16 @@ with tab1:
     # --------------------------------------------------------
     # GCS 3D Model — shown once all five GCS params are entered
     # --------------------------------------------------------
-    st.subheader("GCS Model (3D Geometry)")
+    st.subheader(t("page.sim.gcs_subheader"))
 
     # Defaults used when GCS params are not yet entered
     proj_ratio = 0.0
     target_hit_geometry = False
 
     if not gcs_params_entered:
-        st.info(
-            "ℹ️ Enter all five **GCS parameters** in the sidebar — or press "
-            "**⚡ Fill with example** — to view the 3D geometry."
-        )
+        st.info(t("page.sim.gcs_info"))
     else:
-        with st.spinner("Computing GCS geometry…  (cached after first run)"):
+        with st.spinner(t("page.sim.gcs_spinner")):
             proj_ratio = _cached_projection_ratio(
                 alpha_deg=gcs_params.half_angle_deg,
                 kappa=gcs_params.kappa,
@@ -167,16 +167,9 @@ with tab1:
         target_hit_geometry = proj_ratio >= 0.3
 
         if target_hit_geometry:
-            st.success(
-                f"✓ **HIT** — The CME flank intercepts **{config.target.name}** "
-                f"at a projection ratio of **{proj_ratio:.4f}** (≥ 0.3 threshold)."
-            )
+            st.success(t("page.sim.gcs_hit").format(target=config.target.name, ratio=proj_ratio))
         else:
-            st.error(
-                f"**GEOMETRY: MISS** — Projection ratio {proj_ratio:.4f} < 0.3. "
-                "The GCS CME body does not sufficiently encompass the target direction. "
-                "Adjust longitude, latitude, or half-angle."
-            )
+            st.error(t("page.sim.gcs_miss").format(ratio=proj_ratio))
 
         gcs_fig = build_gcs_figure(
             alpha_deg=gcs_params.half_angle_deg,
@@ -196,13 +189,10 @@ with tab1:
     # Height-Time Diagram — shown once ≥2 observations exist
     # --------------------------------------------------------
     st.divider()
-    st.subheader("Height-Time Diagram")
+    st.subheader(t("page.sim.ht_subheader"))
 
     if not has_obs:
-        st.info(
-            "ℹ️ Add at least **2 observations** in the sidebar to compute "
-            "the H-T fit and apex velocity."
-        )
+        st.info(t("page.sim.ht_info"))
     else:
         assert clean_df is not None
         derived: DerivedGCSParams = _cached_derived_params(clean_df, config.height_error)
@@ -222,19 +212,19 @@ with tab1:
         # Velocity result displayed prominently below the plot
         v_col, proj_col, target_col, _ = st.columns([1, 1, 1, 1])
         v_col.metric(
-            "Apex Velocity",
+            t("page.sim.metric.apex_velocity"),
             f"{derived.v_apex_kms:.0f} ± {derived.v_apex_error_kms:.0f} km/s",
-            help="CME apex velocity and 1σ uncertainty from the weighted linear H-T fit.",
+            help=t("page.sim.metric.apex_velocity_help"),
         )
         proj_col.metric(
-            "Projection Ratio",
+            t("page.sim.metric.proj_ratio"),
             f"{proj_ratio:.4f}" if target_hit_geometry else "—",
-            help="Fraction of apex height reached at the target latitude/longitude.",
+            help=t("page.sim.metric.proj_ratio_help"),
         )
         target_col.metric(
-            "v₀ toward Target",
+            t("page.sim.metric.v0_target"),
             f"{derived.v_apex_kms * proj_ratio:.0f} km/s" if target_hit_geometry else "MISS",
-            help="Initial velocity component directed at the selected target.",
+            help=t("page.sim.metric.v0_target_help"),
         )
 
 
@@ -242,31 +232,30 @@ with tab1:
 # TAB 2 — Propagation Results (button-triggered)
 # ============================================================
 with tab2:
-    st.subheader("Drag-Based Propagation")
-    st.markdown(
-        "Press **▶ Run Simulation** in the sidebar to compute DBM and MoDBM trajectories "
-        "and arrival predictions at the selected target."
-    )
+    st.subheader(t("page.sim.prop_subheader"))
+    st.markdown(t("page.sim.prop_info"))
 
     # --------------------------------------------------------
     # Trigger on button press
     # --------------------------------------------------------
     if run_clicked:
         if clean_df is None:
-            st.warning("⚠️ Add at least 2 observations in the sidebar before running.")
+            st.warning(t("page.sim.no_obs_warning"))
         else:
-            with st.spinner("Running DBM & MoDBM simulations…"):
+            with st.spinner(t("page.sim.sim_spinner")):
                 try:
                     results = run_full_simulation(clean_df, config)
                     st.session_state[KEY_SIM_RESULTS] = results
                     st.session_state[KEY_SIM_CONFIG] = config
-                    st.success("✅ Simulation complete!")
+                    st.success(t("page.sim.sim_success"))
                 except ValueError as exc:
-                    st.error(f"⚠️ Invalid input: {exc}")
+                    st.error(t("page.sim.sim_err_invalid").format(exc=exc))
                     st.session_state[KEY_SIM_RESULTS] = None
                 except Exception as exc:
                     st.error(
-                        f"Simulation failed with an unexpected error: {type(exc).__name__}: {exc}"
+                        t("page.sim.sim_err_unexpected").format(
+                            exc_type=type(exc).__name__, exc=exc
+                        )
                     )
                     st.session_state[KEY_SIM_RESULTS] = None
 
@@ -277,18 +266,13 @@ with tab2:
     stored_config: SimulationConfig | None = st.session_state.get(KEY_SIM_CONFIG)
 
     if results is None:
-        st.info(
-            "No results yet. Configure parameters in the sidebar and press **▶ Run Simulation**."
-        )
+        st.info(t("page.sim.no_results_info"))
         st.stop()
 
     assert stored_config is not None
 
     if not results.target_hit:
-        st.error(
-            f"**GEOMETRY: MISS** — The simulation was run but the ICME does not intercept "
-            f"**{stored_config.target.name}**. No propagation result is available."
-        )
+        st.error(t("page.sim.geom_miss").format(target=stored_config.target.name))
         st.stop()
 
     # --------------------------------------------------------
@@ -312,24 +296,26 @@ with tab2:
     """,
         unsafe_allow_html=True,
     )
-    st.subheader("Key Results")
+    st.subheader(t("page.sim.key_results"))
     c1, c2, c3, c4 = st.columns(4)
     c1.metric(
-        "Apex Velocity",
+        t("page.sim.metric.apex_velocity"),
         f"{results.derived.v_apex_kms:.0f} ± {results.derived.v_apex_error_kms:.0f} km/s",
-        help="CME apex velocity and 1σ uncertainty from the weighted linear H-T fit.",
+        help=t("page.sim.metric.apex_velocity_help"),
     )
-    c2.metric("Projection Ratio", f"{results.projection_ratio:.4f}")
+    c2.metric(t("page.sim.metric.proj_ratio"), f"{results.projection_ratio:.4f}")
     _v0_delta = (
-        "overridden" if (stored_config and stored_config.v0_override_kms is not None) else None
+        t("page.sim.metric.v0_override_note")
+        if (stored_config and stored_config.v0_override_kms is not None)
+        else None
     )
     c3.metric("v₀ → Target", f"{results.v0_kms:.0f} km/s", delta=_v0_delta, delta_color="off")
-    c4.metric("Target Distance", f"{stored_config.target.distance:.3f} AU")
+    c4.metric(t("page.sim.metric.target_dist"), f"{stored_config.target.distance:.3f} AU")
 
     # --------------------------------------------------------
     # Side-by-side model results
     # --------------------------------------------------------
-    st.subheader("Model Results")
+    st.subheader(t("page.sim.model_results"))
     col_dbm, col_modbm = st.columns(2)
 
     with col_dbm:
@@ -343,99 +329,98 @@ with tab2:
             diff_dbm = format_diff(results.arrival_time_DBM, toa_expected)
             mc1, mc2 = st.columns(2)
             mc1.markdown(
-                _mini_metric("Arrival", results.arrival_time_DBM.strftime("%d.%m. %H:%M")),
+                _mini_metric(
+                    t("page.sim.metric.arrival"),
+                    results.arrival_time_DBM.strftime("%d.%m. %H:%M"),
+                ),
                 unsafe_allow_html=True,
             )
             if diff_dbm:
                 _pos = not diff_dbm.startswith("-")
                 mc2.markdown(
-                    _mini_metric("Δ vs Expected", diff_dbm, delta=diff_dbm, delta_positive=_pos),
+                    _mini_metric(
+                        t("page.sim.metric.delta_expected"),
+                        diff_dbm,
+                        delta=diff_dbm,
+                        delta_positive=_pos,
+                    ),
                     unsafe_allow_html=True,
                 )
             mc3, mc4 = st.columns(2)
             mc3.markdown(
-                _mini_metric("Transit", f"{results.elapsed_time_DBM_h:.1f} h"),
+                _mini_metric(t("page.sim.metric.transit"), f"{results.elapsed_time_DBM_h:.1f} h"),
                 unsafe_allow_html=True,
             )
             mc4.markdown(
-                _mini_metric("Impact", f"{results.velocity_arrival_DBM_kms:.0f} km/s"),
+                _mini_metric(
+                    t("page.sim.metric.impact"),
+                    f"{results.velocity_arrival_DBM_kms:.0f} km/s",
+                ),
                 unsafe_allow_html=True,
             )
         else:
-            st.warning("DBM did not reach the target within the integration window.")
+            st.warning(t("page.sim.dbm_no_arrival"))
 
-        with st.expander("Inputs used — DBM", expanded=False):
+        with st.expander(t("page.sim.inputs_dbm"), expanded=False):
             d = results.derived
             _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
             ec1, ec2 = st.columns(2)
             ec1.metric(
                 "𝒓₀ [R☉]",
                 f"{d.r0_rsun:.2f}",
-                help="Initial apex height 𝒓₀: greatest observed coronagraph height, used as the "
-                "starting position r(t=0) of the drag ODE [R☉].",
+                help=t("page.sim.metric.r0_help"),
             )
             ec2.metric(
                 "t₀",
                 d.t0.strftime("%d.%m. %H:%M"),
-                help="Reference launch time: timestamp of the last (highest) coronagraph "
-                "observation, used as t=0 for the ODE integration.",
+                help=t("page.sim.metric.t0_help"),
             )
             st.metric(
                 "v_apex [km/s]",
                 f"{d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f}",
-                help="CME apex velocity and $1\\sigma$ uncertainty from the weighted linear "
-                "height-time fit. Represents the outward speed of the outermost "
-                "point of the GCS flux rope.",
+                help=t("page.sim.metric.vapex_help"),
             )
             st.metric(
                 f"v₀ → {stored_config.target.name} [km/s]",
                 f"{results.v0_kms:.0f}{_v0_note}",
-                help="Initial CME speed projected onto the Sun–target line of sight: "
-                "$v_0 = v_{\\rm apex} \\times$ projection ratio. This is the starting velocity "
-                "fed into the 1-D drag equation.",
+                help=t("page.sim.metric.v0_help"),
             )
             ea1, ea2 = st.columns(2)
             ea1.metric(
                 "𝜶 [deg]",
                 f"{d.alpha_deg:.1f}",
-                help="GCS half-angle 𝜶: angular half-width of the CME flux-rope shell. "
-                "Controls the lateral (longitudinal) extent of the ejecta.",
+                help=t("page.sim.metric.alpha_help"),
             )
             ea2.metric(
                 "𝜿",
                 f"{d.kappa:.3f}",
-                help="GCS aspect ratio 𝜿: ratio of the cross-section radius to the apex "
-                "distance. Determines how 'fat' the flux rope appears in projection.",
+                help=t("page.sim.metric.kappa_help"),
             )
             eb1, eb2 = st.columns(2)
             eb1.metric(
                 "𝝓 [deg]",
                 f"{d.lon_deg:.1f}",
-                help="Stonyhurst heliographic longitude 𝝓 of the CME source region "
-                "(Carrington frame, Earth at 0°).",
+                help=t("page.sim.metric.phi_help"),
             )
             eb2.metric(
                 "𝜽 [deg]",
                 f"{d.lat_deg:.1f}",
-                help="Stonyhurst heliographic latitude 𝜽 of the CME source region.",
+                help=t("page.sim.metric.theta_help"),
             )
             st.metric(
                 "𝜸 [deg]",
                 f"{d.tilt_deg:.1f}",
-                help="Tilt 𝜸 of the CME flux-rope axis relative to the solar equatorial plane. "
-                "Positive tilt = north-east orientation of the axis.",
+                help=t("page.sim.metric.gamma_help"),
             )
             st.metric(
                 "w [km/s]",
                 f"{stored_config.w:.0f}",
-                help="Constant ambient solar wind speed used by the standard DBM as the "
-                "asymptotic drag velocity (CME decelerates toward w). Typical: 300–600 km/s.",
+                help=t("page.sim.metric.w_help"),
             )
             st.metric(
                 "cₙ (drag coeff.)",
                 f"{stored_config.c_d}",
-                help="Dimensionless aerodynamic drag coefficient. Theoretical value ≈1 for a "
-                "sphere; converges to ≈1 for CMEs beyond ∼12 R☉ (Cargill 2004).",
+                help=t("page.sim.metric.cd_help"),
             )
 
         if results.dbm_series:
@@ -459,30 +444,39 @@ with tab2:
             diff_modbm = format_diff(results.arrival_time_MODBM, toa_expected)
             mc1, mc2 = st.columns(2)
             mc1.markdown(
-                _mini_metric("Arrival", results.arrival_time_MODBM.strftime("%d.%m. %H:%M")),
+                _mini_metric(
+                    t("page.sim.metric.arrival"),
+                    results.arrival_time_MODBM.strftime("%d.%m. %H:%M"),
+                ),
                 unsafe_allow_html=True,
             )
             if diff_modbm:
                 _pos = not diff_modbm.startswith("-")
                 mc2.markdown(
                     _mini_metric(
-                        "Δ vs Expected", diff_modbm, delta=diff_modbm, delta_positive=_pos
+                        t("page.sim.metric.delta_expected"),
+                        diff_modbm,
+                        delta=diff_modbm,
+                        delta_positive=_pos,
                     ),
                     unsafe_allow_html=True,
                 )
             mc3, mc4 = st.columns(2)
             mc3.markdown(
-                _mini_metric("Transit", f"{results.elapsed_time_MODBM_h:.1f} h"),
+                _mini_metric(t("page.sim.metric.transit"), f"{results.elapsed_time_MODBM_h:.1f} h"),
                 unsafe_allow_html=True,
             )
             mc4.markdown(
-                _mini_metric("Impact", f"{results.velocity_arrival_MODBM_kms:.0f} km/s"),
+                _mini_metric(
+                    t("page.sim.metric.impact"),
+                    f"{results.velocity_arrival_MODBM_kms:.0f} km/s",
+                ),
                 unsafe_allow_html=True,
             )
         else:
-            st.warning("MoDBM did not reach the target within the integration window.")
+            st.warning(t("page.sim.modbm_no_arrival"))
 
-        with st.expander("Inputs used — MoDBM", expanded=False):
+        with st.expander(t("page.sim.inputs_modbm"), expanded=False):
             d = results.derived
             _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
             _mass = (
@@ -494,87 +488,70 @@ with tab2:
             ec1.metric(
                 "𝒓₀ [R☉]",
                 f"{d.r0_rsun:.2f}",
-                help="Initial apex height 𝒓₀: greatest observed coronagraph height, used as the "
-                "starting position r(t=0) of the drag ODE [R☉].",
+                help=t("page.sim.metric.r0_help"),
             )
             ec2.metric(
                 "t₀",
                 d.t0.strftime("%d.%m. %H:%M"),
-                help="Reference launch time: timestamp of the last (highest) coronagraph "
-                "observation, used as t=0 for the ODE integration.",
+                help=t("page.sim.metric.t0_help"),
             )
             st.metric(
                 "v_apex [km/s]",
                 f"{d.v_apex_kms:.1f} ± {d.v_apex_error_kms:.1f}",
-                help="CME apex velocity and $1\\sigma$ uncertainty from the weighted linear "
-                "height-time fit. Represents the outward speed of the outermost "
-                "point of the GCS flux rope.",
+                help=t("page.sim.metric.vapex_help"),
             )
             st.metric(
                 f"v₀ → {stored_config.target.name} [km/s]",
                 f"{results.v0_kms:.0f}{_v0_note}",
-                help="Initial CME speed projected onto the Sun–target line of sight: "
-                "$v_0 = v_{\\rm apex} \\times$ projection ratio. This is the starting velocity "
-                "fed into the 1-D drag equation.",
+                help=t("page.sim.metric.v0_help"),
             )
             ea1, ea2 = st.columns(2)
             ea1.metric(
                 "𝜶 [deg]",
                 f"{d.alpha_deg:.1f}",
-                help="GCS half-angle 𝜶: angular half-width of the CME flux-rope shell. "
-                "Controls the lateral (longitudinal) extent of the ejecta.",
+                help=t("page.sim.metric.alpha_help"),
             )
             ea2.metric(
                 "𝜿",
                 f"{d.kappa:.3f}",
-                help="GCS aspect ratio 𝜿: ratio of the cross-section radius to the apex "
-                "distance. Determines how 'fat' the flux rope appears in projection.",
+                help=t("page.sim.metric.kappa_help"),
             )
             eb1, eb2 = st.columns(2)
             eb1.metric(
                 "𝝓 [deg]",
                 f"{d.lon_deg:.1f}",
-                help="Stonyhurst heliographic longitude 𝝓 of the CME source region "
-                "(Carrington frame, Earth at 0°).",
+                help=t("page.sim.metric.phi_help"),
             )
             eb2.metric(
                 "𝜽 [deg]",
                 f"{d.lat_deg:.1f}",
-                help="Stonyhurst heliographic latitude 𝜽 of the CME source region.",
+                help=t("page.sim.metric.theta_help"),
             )
             st.metric(
                 "𝜸 [deg]",
                 f"{d.tilt_deg:.1f}",
-                help="Tilt 𝜸 of the CME flux-rope axis relative to the solar equatorial plane. "
-                "Positive tilt = north-east orientation of the axis.",
+                help=t("page.sim.metric.gamma_help"),
             )
             ew1, ew2 = st.columns(2)
             ew1.metric(
                 "Wind regime",
                 stored_config.w_type,
-                help="Background solar wind regime used by the MoDBM density profile "
-                "(Venzmer & Bothmer 2018). 'slow' ≈ 300–400 km/s; 'fast' ≈ 600–800 km/s.",
+                help=t("page.sim.metric.wind_regime_help"),
             )
             ew2.metric(
                 "SSN",
                 f"{stored_config.ssn:.0f}",
-                help="Monthly smoothed total sunspot number. Controls the amplitude of the "
-                "structured solar wind density profile in MoDBM (higher SSN = denser wind "
-                "near solar maximum).",
+                help=t("page.sim.metric.ssn_help"),
             )
             st.metric(
                 "cₙ (drag coeff.)",
                 f"{stored_config.c_d}",
-                help="Dimensionless aerodynamic drag coefficient. Theoretical value ≈1 for a "
-                "sphere; converges to ≈1 for CMEs beyond ∼12 R☉ (Cargill 2004).",
+                help=t("page.sim.metric.cd_help"),
             )
             st.metric(
                 "CME mass",
                 _mass,
-                help="Total CME mass used in the momentum equation. Either a manual override "
-                r"or the Pluta (2018) empirical formula: "
-                r"$\log_{10}(M/{\rm g}) = 3.4\times10^{-4}\,v + 15.479$, "
-                "where v is the apex velocity in km/s.",
+                help=t("page.sim.metric.mass_help"),
             )
 
         if results.modbm_series:
@@ -592,7 +569,7 @@ with tab2:
     # --------------------------------------------------------
     if results.dbm_series or results.modbm_series:
         st.divider()
-        st.subheader("Combined Comparison")
+        st.subheader(t("page.sim.combined_comparison"))
         prop_fig = build_propagation_comparison_figure(
             results=results,
             target_distance_au=stored_config.target.distance,
