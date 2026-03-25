@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.2.0] — 2026-03-25
+
+### Added
+
+#### Application
+
+- **EN↔DE Language Toggle** — Zero-dependency i18n system supporting English and German
+  UI translations. Two flag-emoji buttons (🇬🇧 / 🇩🇪) rendered inline with the page title
+  switch the active locale via `st.session_state`; the page reruns to apply the new language
+  immediately. All labels, headings, units, and result descriptions are covered by the locale
+  dictionaries in `locale/en.py` and `locale/de.py`, resolved through `i18n.py`.
+
+#### Developer Tooling
+
+- **Pre-push quality gates** — Three pre-push hooks added to `.pre-commit-config.yaml`
+  enforce quality before changes reach CI: `uv lock --check` (ensures `uv.lock` is in sync
+  with `pyproject.toml`), `pyright src/` (type checking), and `pytest` (full test suite).
+
+---
+
 ## [0.1.0] — 2026-03-11
 
 Initial public release of HelioTrace — an interactive CME propagation explorer
@@ -85,4 +105,5 @@ Thesis at Georg-August-University Göttingen.
 
 ---
 
+[0.2.0]: https://github.com/ennomuller/HelioTrace/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ennomuller/HelioTrace/releases/tag/v0.1.0
