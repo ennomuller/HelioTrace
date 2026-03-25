@@ -1,6 +1,6 @@
 [project]
 name = "heliotrace"
-version = "0.2.0"
+version = "0.3.0"
 description = "Interactive CME propagation modelling — DBM & MoDBM"
 readme = "README.md"
 requires-python = ">=3.12"
