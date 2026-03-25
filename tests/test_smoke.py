@@ -9,13 +9,36 @@ Reference (from MEMORY.md):
 
 from __future__ import annotations
 
+import ast
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
 import heliotrace
+
+# ---------------------------------------------------------------------------
+# Helper: extract a top-level function from the Streamlit page file without
+# triggering module-level side effects (st.set_page_config, etc.).
+# ---------------------------------------------------------------------------
+_PAGE_PATH = Path(__file__).resolve().parent.parent / "pages" / "01_Propagation_Simulator.py"
+
+
+def _load_page_function(func_name: str):  # noqa: ANN201
+    """Extract and compile a single function from the simulator page module."""
+    source = _PAGE_PATH.read_text()
+    tree = ast.parse(source)
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == func_name:
+            func_source = ast.get_source_segment(source, node)
+            assert func_source is not None
+            ns: dict = {}
+            exec(compile(ast.parse(func_source), "<test>", "exec"), ns)  # noqa: S102
+            return ns[func_name]
+    raise LookupError(func_name)
+
 
 # ---------------------------------------------------------------------------
 # Import tests
@@ -164,3 +187,74 @@ def test_full_simulation_dbm_transit(reference_gcs_df: pd.DataFrame) -> None:
     assert 60.0 < results.elapsed_time_DBM_h < 80.0, (
         f"DBM transit = {results.elapsed_time_DBM_h:.1f} h (expected ~69.4)"
     )
+
+
+# ---------------------------------------------------------------------------
+# KPI card & mini-metric HTML helpers
+# ---------------------------------------------------------------------------
+
+_kpi_card = _load_page_function("_kpi_card")
+_mini_metric = _load_page_function("_mini_metric")
+
+
+class TestKpiCard:
+    """Tests for the _kpi_card() dashboard HTML helper."""
+
+    def test_contains_label_and_value(self) -> None:
+        html = _kpi_card("Apex Velocity", "773 km/s")
+        assert "Apex Velocity" in html
+        assert "773 km/s" in html
+
+    def test_subtitle_rendered_when_provided(self) -> None:
+        html = _kpi_card("Velocity", "773 km/s", subtitle="± 42 km/s")
+        assert "± 42 km/s" in html
+        assert "kpi-card-subtitle" in html
+
+    def test_subtitle_absent_when_none(self) -> None:
+        html = _kpi_card("Velocity", "773 km/s", subtitle=None)
+        assert "kpi-card-subtitle" not in html
+
+    def test_accent_color_applied(self) -> None:
+        html = _kpi_card("Ratio", "0.85", accent_color="#2ca02c")
+        assert "#2ca02c" in html
+
+    def test_default_accent_color(self) -> None:
+        html = _kpi_card("Ratio", "0.85")
+        assert "#1f77b4" in html
+
+    def test_returns_single_root_div(self) -> None:
+        html = _kpi_card("Label", "Value").strip()
+        assert html.startswith("<div")
+        assert html.endswith("</div>")
+
+    def test_html_class_names_present(self) -> None:
+        html = _kpi_card("Label", "Value", subtitle="sub")
+        assert "kpi-card" in html
+        assert "kpi-card-label" in html
+        assert "kpi-card-value" in html
+        assert "kpi-card-subtitle" in html
+
+
+class TestMiniMetric:
+    """Tests for the _mini_metric() compact metric HTML helper."""
+
+    def test_basic_label_and_value(self) -> None:
+        html = _mini_metric("Transit", "69.4 h")
+        assert "Transit" in html
+        assert "69.4 h" in html
+
+    def test_no_delta_when_omitted(self) -> None:
+        html = _mini_metric("Transit", "69.4 h")
+        # No colored delta div should appear
+        assert "#2ca02c" not in html
+        assert "#d62728" not in html
+
+    def test_positive_delta_green(self) -> None:
+        html = _mini_metric("Δ", "+3.2 h", delta="+3.2 h", delta_positive=True)
+        assert "#2ca02c" in html
+        assert "+3.2 h" in html
+
+    def test_negative_delta_red(self) -> None:
+        html = _mini_metric("Δ", "-1.5 h", delta="-1.5 h", delta_positive=False)
+        assert "#d62728" in html
+        assert "-1.5 h" in html
