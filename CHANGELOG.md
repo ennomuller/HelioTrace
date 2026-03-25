@@ -6,6 +6,37 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.0] — 2026-03-25
+
+### Added
+
+#### Application
+
+- **CME Kinematics tab** — New middle tab in the Propagation Simulator extracts the
+  height-time diagram and velocity metrics out of the GCS Geometry tab into a dedicated
+  dashboard-style view. The tab features enhanced KPI cards (apex velocity with uncertainty,
+  projection ratio with HIT/MISS badge, v₀ → target), the height-time plot, and a collapsible
+  Fit Details section showing slope, intercept, χ², observation count, and height error.
+
+- **KPI card component** — New `_kpi_card()` HTML helper renders styled dashboard cards with
+  a colored left-border accent, label, large value, and optional subtitle. Uses custom CSS
+  class names per project convention.
+
+#### i18n
+
+- New locale keys for the kinematics tab and fit detail labels in both EN and DE
+  (`tab_kinematics`, `fit_details_subheader`, `fit_detail.*`).
+
+### Changed
+
+- **GCS Geometry tab** now shows only the 3D GCS plot; the height-time diagram and velocity
+  metrics have moved to the new CME Kinematics tab.
+- GCS projection ratio is computed above the tab definitions so all tabs can access it
+  without recomputation.
+- Tab label shortened from "GCS Geometry & Height-Time" to "GCS Geometry" in both locales.
+
+---
+
 ## [0.2.0] — 2026-03-25
 
 ### Added
