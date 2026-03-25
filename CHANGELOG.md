@@ -27,6 +27,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New locale keys for the kinematics tab and fit detail labels in both EN and DE
   (`tab_kinematics`, `fit_details_subheader`, `fit_detail.*`).
 
+### Fixed
+
+- **Sidebar state lost on language switch** — Observation table no longer reverts to example
+  data on every rerun; user edits are preserved in session state and only reset when "Fill
+  with example" is explicitly clicked.
+- **Widget values reset on language change** — Added explicit `key` parameters to target
+  selectbox, custom target inputs (name, lon, lat, dist), and mass override so Streamlit
+  retains their values when translated labels change.
+
 ### Changed
 
 - **GCS Geometry tab** now shows only the 3D GCS plot; the height-time diagram and velocity

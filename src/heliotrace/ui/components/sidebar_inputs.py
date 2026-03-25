@@ -53,6 +53,7 @@ def _fill_example() -> None:
         st.session_state[key] = val
     # Increment the editor counter so the data_editor re-initialises from DEFAULT_OBS_ROWS
     st.session_state["sb_editor_counter"] = st.session_state.get("sb_editor_counter", 0) + 1
+    st.session_state.pop("sb_obs_data", None)
     st.rerun()
 
 
@@ -109,6 +110,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             t("sidebar.target_body"),
             options=preset_names,
             index=0,
+            key="sb_target_body",
             help=t("sidebar.target_body_help"),
         )
 
@@ -116,7 +118,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         preset_vals: dict[str, float] = TARGET_PRESETS.get(preset_choice) or {}  # type: ignore[assignment]
 
         if is_custom:
-            target_name = st.text_input(t("sidebar.target_name"), value="Custom")
+            target_name = st.text_input(
+                t("sidebar.target_name"), value="Custom", key="sb_target_name"
+            )
             cc1, cc2 = st.columns(2)
             target_lon = cc1.number_input(
                 t("sidebar.target_lon"),
@@ -125,6 +129,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 max_value=180.0,
                 step=0.5,
                 format="%.1f",
+                key="sb_target_lon",
             )
             target_lat = cc2.number_input(
                 t("sidebar.target_lat"),
@@ -133,6 +138,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 max_value=90.0,
                 step=0.5,
                 format="%.1f",
+                key="sb_target_lat",
             )
             target_dist = st.number_input(
                 t("sidebar.target_dist"),
@@ -141,6 +147,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 max_value=5.0,
                 step=0.01,
                 format="%.3f",
+                key="sb_target_dist",
             )
         else:
             target_name = preset_choice.split(" (")[0]
@@ -239,7 +246,15 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
         st.caption(t("sidebar.obs_caption"))
 
         counter = st.session_state.get("sb_editor_counter", 0)
-        obs_init = pd.DataFrame(DEFAULT_OBS_ROWS) if counter > 0 else _EMPTY_OBS_DF
+        _prev = st.session_state.get("_obs_counter_applied", 0)
+
+        if counter > _prev:
+            obs_init = pd.DataFrame(DEFAULT_OBS_ROWS)
+            st.session_state["_obs_counter_applied"] = counter
+        elif "sb_obs_data" in st.session_state:
+            obs_init = st.session_state["sb_obs_data"]
+        else:
+            obs_init = _EMPTY_OBS_DF
 
         obs_df: pd.DataFrame = st.data_editor(
             obs_init,
@@ -264,6 +279,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
             },
             key=f"obs_editor_{counter}",
         )
+        st.session_state["sb_obs_data"] = obs_df
 
         valid_obs = len(obs_df.dropna(subset=["datetime", "height"]))
         if valid_obs < 2:
@@ -375,6 +391,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, b
                 value=0.0,
                 min_value=0.0,
                 format="%.2e",
+                key="sb_mass_override",
                 help=t("sidebar.mass_override_help"),
             )
             m_override_g: float | None = m_override_raw if m_override_raw > 0.0 else None
