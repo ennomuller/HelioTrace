@@ -125,7 +125,8 @@ EN: dict[str, str] = {
     # ------------------------------------------------------------------ #
     "page.sim.title": "🚀 Propagation Simulator",
     "page.sim.caption": "Event: **{event}** | Target: **{target}** ({dist:.2f} AU) | Models: DBM · MoDBM",
-    "page.sim.tab_gcs": "📡 GCS Geometry & Height-Time",
+    "page.sim.tab_gcs": "📡 GCS Geometry",
+    "page.sim.tab_kinematics": "📊 CME Kinematics",
     "page.sim.tab_prop": "📈 Propagation Results",
     "page.sim.gcs_subheader": "GCS Model (3D Geometry)",
     "page.sim.gcs_info": (
@@ -156,6 +157,12 @@ EN: dict[str, str] = {
     ),
     "page.sim.metric.v0_target": "v₀ toward Target",
     "page.sim.metric.v0_target_help": "Initial velocity component directed at the selected target.",
+    "page.sim.fit_details_subheader": "Fit Details",
+    "page.sim.fit_detail.slope": "Slope",
+    "page.sim.fit_detail.intercept": "Intercept",
+    "page.sim.fit_detail.chi_squared": "χ²",
+    "page.sim.fit_detail.n_obs": "Observations",
+    "page.sim.fit_detail.height_error": "Height Error",
     "page.sim.prop_subheader": "Drag-Based Propagation",
     "page.sim.prop_info": (
         "Press **▶ Run Simulation** in the sidebar to compute DBM and MoDBM trajectories "

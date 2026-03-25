@@ -1,8 +1,9 @@
 """
 CME Propagation — Main simulation page.
 
-Tab 1: GCS Geometry & Height-Time Diagram  (live; updates reactively)
-Tab 2: Propagation Results                  (triggered by "Run Simulation" button)
+Tab 1: GCS Geometry              (live; updates reactively)
+Tab 2: CME Kinematics            (live; HT diagram + velocity KPIs + fit details)
+Tab 3: Propagation Results       (triggered by "Run Simulation" button)
 """
 
 from __future__ import annotations
@@ -91,6 +92,32 @@ def _mini_metric(
     )
 
 
+def _kpi_card(
+    label: str,
+    value: str,
+    subtitle: str | None = None,
+    accent_color: str = "#1f77b4",
+) -> str:
+    """Return an HTML snippet for a dashboard-style KPI card with a colored left border."""
+    _sub = (
+        f'<div class="kpi-card-subtitle" style="font-size:0.9rem;color:#888;'
+        f'margin-top:2px">{subtitle}</div>'
+        if subtitle
+        else ""
+    )
+    return (
+        f'<div class="kpi-card" style="border-left:4px solid {accent_color};'
+        "padding:10px 14px;border-radius:6px;"
+        'background:var(--background-color, #f8f9fa);margin-bottom:8px">'
+        f'<div class="kpi-card-label" style="font-size:0.8rem;color:#888;'
+        f'text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">{label}</div>'
+        f'<div class="kpi-card-value" style="font-size:1.6rem;font-weight:700;'
+        f'line-height:1.3">{value}</div>'
+        f"{_sub}"
+        "</div>"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Initialise session state + render sidebar
 # ---------------------------------------------------------------------------
@@ -132,40 +159,41 @@ else:
     clean_df = None
 
 # ---------------------------------------------------------------------------
+# Pre-compute GCS projection ratio (needed by multiple tabs)
+# ---------------------------------------------------------------------------
+proj_ratio = 0.0
+target_hit_geometry = False
+
+if gcs_params_entered:
+    with st.spinner(t("page.sim.gcs_spinner")):
+        proj_ratio = _cached_projection_ratio(
+            alpha_deg=gcs_params.half_angle_deg,
+            kappa=gcs_params.kappa,
+            cme_lat_deg=gcs_params.lat_deg,
+            cme_lon_deg=gcs_params.lon_deg,
+            tilt_deg=gcs_params.tilt_deg,
+            target_lat_deg=config.target.lat,
+            target_lon_deg=config.target.lon,
+        )
+    target_hit_geometry = proj_ratio >= 0.3
+
+# ---------------------------------------------------------------------------
 # Main tabs
 # ---------------------------------------------------------------------------
-tab1, tab2 = st.tabs([t("page.sim.tab_gcs"), t("page.sim.tab_prop")])
+tab1, tab_kin, tab2 = st.tabs(
+    [t("page.sim.tab_gcs"), t("page.sim.tab_kinematics"), t("page.sim.tab_prop")]
+)
 
 
 # ============================================================
-# TAB 1 — Reactive GCS geometry + HT fit (no button required)
+# TAB 1 — GCS Geometry (3D plot only)
 # ============================================================
 with tab1:
-    # --------------------------------------------------------
-    # GCS 3D Model — shown once all five GCS params are entered
-    # --------------------------------------------------------
     st.subheader(t("page.sim.gcs_subheader"))
-
-    # Defaults used when GCS params are not yet entered
-    proj_ratio = 0.0
-    target_hit_geometry = False
 
     if not gcs_params_entered:
         st.info(t("page.sim.gcs_info"))
     else:
-        with st.spinner(t("page.sim.gcs_spinner")):
-            proj_ratio = _cached_projection_ratio(
-                alpha_deg=gcs_params.half_angle_deg,
-                kappa=gcs_params.kappa,
-                cme_lat_deg=gcs_params.lat_deg,
-                cme_lon_deg=gcs_params.lon_deg,
-                tilt_deg=gcs_params.tilt_deg,
-                target_lat_deg=config.target.lat,
-                target_lon_deg=config.target.lon,
-            )
-
-        target_hit_geometry = proj_ratio >= 0.3
-
         if target_hit_geometry:
             st.success(t("page.sim.gcs_hit").format(target=config.target.name, ratio=proj_ratio))
         else:
@@ -185,10 +213,11 @@ with tab1:
         )
         st.plotly_chart(gcs_fig, width="stretch")
 
-    # --------------------------------------------------------
-    # Height-Time Diagram — shown once ≥2 observations exist
-    # --------------------------------------------------------
-    st.divider()
+
+# ============================================================
+# TAB 2 — CME Kinematics (HT diagram + velocity KPIs + fit details)
+# ============================================================
+with tab_kin:
     st.subheader(t("page.sim.ht_subheader"))
 
     if not has_obs:
@@ -197,6 +226,53 @@ with tab1:
         assert clean_df is not None
         derived: DerivedGCSParams = _cached_derived_params(clean_df, config.height_error)
 
+        # --- Enhanced KPI cards ---
+        _v_sub = f"± {derived.v_apex_error_kms:.0f} km/s"
+        if target_hit_geometry:
+            _pr_val = f"{proj_ratio:.4f}"
+            _pr_sub = '<span style="color:#2ca02c;font-weight:600">HIT</span>'
+            _pr_accent = "#2ca02c"
+            _vt_val = f"{derived.v_apex_kms * proj_ratio:.0f} km/s"
+            _vt_sub = f"toward {config.target.name}"
+            _vt_accent = "#1f77b4"
+        else:
+            _pr_val = f"{proj_ratio:.4f}" if gcs_params_entered else "—"
+            _pr_sub = '<span style="color:#d62728;font-weight:600">MISS</span>'
+            _pr_accent = "#d62728"
+            _vt_val = "MISS"
+            _vt_sub = None
+            _vt_accent = "#d62728"
+
+        kpi1, kpi2, kpi3 = st.columns(3)
+        kpi1.markdown(
+            _kpi_card(
+                t("page.sim.metric.apex_velocity"),
+                f"{derived.v_apex_kms:.0f} km/s",
+                subtitle=_v_sub,
+                accent_color="#1f77b4",
+            ),
+            unsafe_allow_html=True,
+        )
+        kpi2.markdown(
+            _kpi_card(
+                t("page.sim.metric.proj_ratio"),
+                _pr_val,
+                subtitle=_pr_sub,
+                accent_color=_pr_accent,
+            ),
+            unsafe_allow_html=True,
+        )
+        kpi3.markdown(
+            _kpi_card(
+                t("page.sim.metric.v0_target"),
+                _vt_val,
+                subtitle=_vt_sub,
+                accent_color=_vt_accent,
+            ),
+            unsafe_allow_html=True,
+        )
+
+        # --- Height-Time plot ---
         ht_fig = build_ht_figure(
             df=clean_df,
             height_error=config.height_error,
@@ -209,27 +285,19 @@ with tab1:
         )
         st.plotly_chart(ht_fig, width="stretch")
 
-        # Velocity result displayed prominently below the plot
-        v_col, proj_col, target_col, _ = st.columns([1, 1, 1, 1])
-        v_col.metric(
-            t("page.sim.metric.apex_velocity"),
-            f"{derived.v_apex_kms:.0f} ± {derived.v_apex_error_kms:.0f} km/s",
-            help=t("page.sim.metric.apex_velocity_help"),
-        )
-        proj_col.metric(
-            t("page.sim.metric.proj_ratio"),
-            f"{proj_ratio:.4f}" if target_hit_geometry else "—",
-            help=t("page.sim.metric.proj_ratio_help"),
-        )
-        target_col.metric(
-            t("page.sim.metric.v0_target"),
-            f"{derived.v_apex_kms * proj_ratio:.0f} km/s" if target_hit_geometry else "MISS",
-            help=t("page.sim.metric.v0_target_help"),
-        )
+        # --- Fit Details expander ---
+        with st.expander(t("page.sim.fit_details_subheader"), expanded=False):
+            fd1, fd2, fd3 = st.columns(3)
+            fd1.metric(t("page.sim.fit_detail.slope"), f"{derived.fit_slope:.2e} R☉/s")
+            fd2.metric(t("page.sim.fit_detail.intercept"), f"{derived.fit_intercept:.2f} R☉")
+            fd3.metric(t("page.sim.fit_detail.chi_squared"), f"{derived.fit_chi_squared:.2f}")
+            fd4, fd5, _ = st.columns(3)
+            fd4.metric(t("page.sim.fit_detail.n_obs"), f"{len(clean_df)}")
+            fd5.metric(t("page.sim.fit_detail.height_error"), f"± {config.height_error} R☉")
 
 
 # ============================================================
-# TAB 2 — Propagation Results (button-triggered)
+# TAB 3 — Propagation Results (button-triggered)
 # ============================================================
 with tab2:
     st.subheader(t("page.sim.prop_subheader"))

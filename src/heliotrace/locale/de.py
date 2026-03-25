@@ -129,7 +129,8 @@ DE: dict[str, str] = {
     "page.sim.caption": (
         "Ereignis: **{event}** | Ziel: **{target}** ({dist:.2f} AU) | Modelle: DBM · MoDBM"
     ),
-    "page.sim.tab_gcs": "📡 GCS-Geometrie & Höhen-Zeit",
+    "page.sim.tab_gcs": "📡 GCS-Geometrie",
+    "page.sim.tab_kinematics": "📊 CME-Kinematik",
     "page.sim.tab_prop": "📈 Ausbreitungsergebnisse",
     "page.sim.gcs_subheader": "GCS-Modell (3D-Geometrie)",
     "page.sim.gcs_info": (
@@ -163,6 +164,12 @@ DE: dict[str, str] = {
     "page.sim.metric.v0_target_help": (
         "Initiale Geschwindigkeitskomponente in Richtung des gewählten Ziels."
     ),
+    "page.sim.fit_details_subheader": "Fit-Details",
+    "page.sim.fit_detail.slope": "Steigung",
+    "page.sim.fit_detail.intercept": "Achsenabschnitt",
+    "page.sim.fit_detail.chi_squared": "χ²",
+    "page.sim.fit_detail.n_obs": "Beobachtungen",
+    "page.sim.fit_detail.height_error": "Höhenfehler",
     "page.sim.prop_subheader": "Reibungsbasierte Ausbreitung",
     "page.sim.prop_info": (
         "**▶ Simulation starten** in der Seitenleiste drücken, um DBM- und MoDBM-Trajektorien "
