@@ -17,6 +17,24 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# app.py
+st.markdown(
+    """
+    <style>
+    :root {
+        --top-gutter: 0.75rem; /* The master "tightness" control */
+    }
+    [data-testid="stMainBlockContainer"] {
+        padding-top: var(--top-gutter);
+    }
+    @media (max-width: 768px) {
+        :root { --top-gutter: 0.5rem; }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 pg = st.navigation(
     [
         st.Page("pages/home.py", title="🏠 Home"),

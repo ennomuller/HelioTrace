@@ -20,6 +20,12 @@ from heliotrace.locale.en import EN
 _LOCALES: dict[str, dict[str, str]] = {"en": EN, "de": DE}
 _LANG_NAMES: dict[str, str] = {"en": "English", "de": "German"}
 _LANG_FLAGS: dict[str, str] = {"en": "🇬🇧", "de": "🇩🇪"}
+_HEADER_THEME = {
+    "desktop_top_margin": "2rem",
+    "mobile_top_margin": "0.5rem",
+    "button_min_width": "3.5rem",
+    "breakpoint": "768px",
+}
 
 
 def t(key: str) -> str:
@@ -32,34 +38,44 @@ def t(key: str) -> str:
     return locale.get(key, EN.get(key, key))
 
 
-_PAGE_HEADER_CSS = """\
+_PAGE_HEADER_CSS = f"""
 <style>
-.st-key-page-header-desktop {
-    display: block;
-}
+    :root {{
+        --header-desktop-margin: {_HEADER_THEME["desktop_top_margin"]};
+        --header-mobile-margin: {_HEADER_THEME["mobile_top_margin"]};
+        --btn-width: {_HEADER_THEME["button_min_width"]};
+    }}
 
-.st-key-page-header-mobile {
-    display: none;
-}
+    /* Global resets for the header containers */
+    .st-key-page-header-desktop, .st-key-page-header-mobile {{
+        padding-top: 0;
+    }}
 
-.st-key-page-header-mobile-toggle {
-    margin-bottom: 0.25rem;
-}
+    /* Grouped selectors to avoid repetition */
+    .st-key-page-header-desktop h1,
+    .st-key-page-header-desktop [data-testid="stHeading"] {{
+        margin-top: var(--header-desktop-margin);
+        padding-top: 0;
+    }}
 
-.st-key-page-header-desktop button {
-    min-width: 3.5rem;
-    min-height: 2.5rem;
-}
+    .st-key-page-header-desktop button {{
+        min-width: var(--btn-width);
+        min-height: 2.5rem;
+    }}
 
-@media (max-width: 768px) {
-    .st-key-page-header-desktop {
+    .st-key-page-header-mobile {{
         display: none;
-    }
+        margin-top: var(--header-mobile-margin);
+    }}
 
-    .st-key-page-header-mobile {
-        display: block;
-    }
-}
+    .st-key-page-header-mobile-toggle {{
+        margin-bottom: 0.25rem;
+    }}
+
+    @media (max-width: {_HEADER_THEME["breakpoint"]}) {{
+        .st-key-page-header-desktop {{ display: none; }}
+        .st-key-page-header-mobile {{ display: block; }}
+    }}
 </style>
 """
 
