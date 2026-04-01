@@ -1,9 +1,5 @@
 """
 Tests for the i18n module.
-
-Covers:
-- t() fallback chain (DE → EN → key)
-- Key parity: every key in DE must exist in EN and vice versa
 """
 
 from __future__ import annotations
@@ -12,6 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
+from heliotrace.i18n import _get_lang_toggle_props
 from heliotrace.locale.de import DE
 from heliotrace.locale.en import EN
 
@@ -83,6 +80,33 @@ def test_t_falls_back_to_key_for_unknown_key() -> None:
 # ---------------------------------------------------------------------------
 # Sanity: no empty strings in either locale
 # ---------------------------------------------------------------------------
+
+
+def test_get_lang_toggle_props_defaults_to_english() -> None:
+    props = _get_lang_toggle_props(None)
+
+    assert props.current_lang == "en"
+    assert props.target_lang == "de"
+    assert props.label == "🇩🇪"
+    assert props.help_text == "Switch language to German"
+
+
+def test_get_lang_toggle_props_switches_to_english_from_german() -> None:
+    props = _get_lang_toggle_props("de")
+
+    assert props.current_lang == "de"
+    assert props.target_lang == "en"
+    assert props.label == "🇬🇧"
+    assert props.help_text == "Switch language to English"
+
+
+def test_get_lang_toggle_props_falls_back_for_unknown_language() -> None:
+    props = _get_lang_toggle_props("fr")
+
+    assert props.current_lang == "en"
+    assert props.target_lang == "de"
+    assert props.label == "🇩🇪"
+    assert props.help_text == "Switch language to German"
 
 
 @pytest.mark.parametrize("key", list(EN.keys()))

@@ -3,12 +3,14 @@ Internationalisation helpers for HelioTrace.
 
 Usage
 -----
-    from heliotrace.i18n import t, render_lang_toggle
+    from heliotrace.i18n import render_page_header, t
 
-    render_lang_toggle(t("page.home.title"))  # call once at the top of each page
+    render_page_header(t("page.home.title"))  # call once at the top of each page
 """
 
 from __future__ import annotations
+
+from dataclasses import dataclass
 
 import streamlit as st
 
@@ -16,6 +18,8 @@ from heliotrace.locale.de import DE
 from heliotrace.locale.en import EN
 
 _LOCALES: dict[str, dict[str, str]] = {"en": EN, "de": DE}
+_LANG_NAMES: dict[str, str] = {"en": "English", "de": "German"}
+_LANG_FLAGS: dict[str, str] = {"en": "🇬🇧", "de": "🇩🇪"}
 
 
 def t(key: str) -> str:
@@ -28,33 +32,93 @@ def t(key: str) -> str:
     return locale.get(key, EN.get(key, key))
 
 
-def render_lang_toggle(title: str) -> None:
-    """Render the page title with 🇬🇧 / 🇩🇪 flag buttons inline on the right."""
-    current_lang = st.session_state.get("lang", "en")
-    col_title, col_toggle = st.columns([9, 1], vertical_alignment="center")
+_PAGE_HEADER_CSS = """\
+<style>
+.st-key-page-header-desktop {
+    display: block;
+}
 
-    with col_title:
+.st-key-page-header-mobile {
+    display: none;
+}
+
+.st-key-page-header-mobile-toggle {
+    margin-bottom: 0.25rem;
+}
+
+.st-key-page-header-desktop button {
+    min-width: 3.5rem;
+    min-height: 2.5rem;
+}
+
+@media (max-width: 768px) {
+    .st-key-page-header-desktop {
+        display: none;
+    }
+
+    .st-key-page-header-mobile {
+        display: block;
+    }
+}
+</style>
+"""
+
+
+@dataclass(frozen=True)
+class LangToggleProps:
+    """UI metadata for the language switch control."""
+
+    current_lang: str
+    target_lang: str
+    label: str
+    help_text: str
+
+
+def _get_lang_toggle_props(current_lang: str | None) -> LangToggleProps:
+    """Return deterministic UI metadata for the single-action language switch."""
+    effective_lang = current_lang if current_lang in _LOCALES else "en"
+    target_lang = "de" if effective_lang == "en" else "en"
+    target_name = _LANG_NAMES[target_lang]
+    return LangToggleProps(
+        current_lang=effective_lang,
+        target_lang=target_lang,
+        label=_LANG_FLAGS[target_lang],
+        help_text=f"Switch language to {target_name}",
+    )
+
+
+def _render_lang_toggle_button(props: LangToggleProps, *, key: str) -> None:
+    """Render the toggle button and switch locale on click."""
+    if st.button(props.label, key=key, help=props.help_text):
+        st.session_state["lang"] = props.target_lang
+        st.rerun()
+
+
+def _render_lang_toggle_button_full_width(props: LangToggleProps, *, key: str) -> None:
+    """Render a full-width toggle button for mobile layouts."""
+    if st.button(props.label, key=key, help=props.help_text, use_container_width=True):
+        st.session_state["lang"] = props.target_lang
+        st.rerun()
+
+
+def render_page_header(title: str) -> None:
+    """Render a responsive page header with title and language switch."""
+    props = _get_lang_toggle_props(st.session_state.get("lang"))
+    st.markdown(_PAGE_HEADER_CSS, unsafe_allow_html=True)
+
+    with st.container(key="page-header-desktop"):
+        col_title, col_toggle = st.columns([12, 1], vertical_alignment="center")
+        with col_title:
+            st.title(title)
+        with col_toggle:
+            _render_lang_toggle_button(props, key="lang_btn_desktop")
+
+    with st.container(key="page-header-mobile"):
+        with st.container(key="page-header-mobile-toggle"):
+            _render_lang_toggle_button_full_width(props, key="lang_btn_mobile")
         st.title(title)
 
-    with col_toggle:
-        c_en, c_de = st.columns(2, gap="small")
 
-        with c_en:
-            if st.button(
-                "🇪🇳",
-                key="lang_btn_en",
-                type="primary" if current_lang == "en" else "secondary",
-                use_container_width=True,
-            ):
-                st.session_state["lang"] = "en"
-                st.rerun()
-
-        with c_de:
-            if st.button(
-                "🇩🇪",
-                key="lang_btn_de",
-                type="primary" if current_lang == "de" else "secondary",
-                use_container_width=True,
-            ):
-                st.session_state["lang"] = "de"
-                st.rerun()
+def render_lang_toggle(title: str) -> None:
+    """Backward-compatible alias for the responsive page header helper."""
+    render_page_header(title)

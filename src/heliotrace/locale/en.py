@@ -123,7 +123,7 @@ EN: dict[str, str] = {
     # ------------------------------------------------------------------ #
     # Propagation Simulator page
     # ------------------------------------------------------------------ #
-    "page.sim.title": "🚀 Propagation Simulator",
+    "page.sim.title": "Propagation Simulator",
     "page.sim.caption": "Event: **{event}** | Target: **{target}** ({dist:.2f} AU) | Models: DBM · MoDBM",
     "page.sim.tab_gcs": "📡 GCS Geometry",
     "page.sim.tab_kinematics": "📊 CME Kinematics",

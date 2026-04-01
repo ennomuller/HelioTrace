@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.1] — 2026-04-01
+
+### Changed
+
+#### Application
+
+- **Responsive page header language toggle** — Replaced the previous inline/mobile split language switch with a shared page header helper that adapts cleanly between desktop and mobile layouts while keeping the single-action EN↔DE toggle behavior.
+
+#### i18n
+
+- Extracted deterministic language-toggle metadata into a dedicated helper and kept `render_lang_toggle()` as a compatibility alias for existing page code.
+
+### Fixed
+
+- Added focused tests covering language-toggle props and fallback behavior.
+- Synchronized package version metadata with the released application version.
+
+---
+
 ## [0.3.0] — 2026-03-25
 
 ### Added
@@ -145,5 +164,7 @@ Thesis at Georg-August-University Göttingen.
 
 ---
 
+[0.3.1]: https://github.com/ennomuller/HelioTrace/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/ennomuller/HelioTrace/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ennomuller/HelioTrace/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ennomuller/HelioTrace/releases/tag/v0.1.0
