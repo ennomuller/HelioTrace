@@ -23,6 +23,7 @@ from heliotrace.models.schemas import (
     SimulationResults,
 )
 from heliotrace.physics.apex_ratio import get_target_apex_ratio
+from heliotrace.physics.drag import get_CME_mass_pluta
 from heliotrace.simulation.runner import derive_gcs_params, run_full_simulation
 from heliotrace.ui.components.gcs_plot import build_gcs_figure
 from heliotrace.ui.components.ht_plot import build_ht_figure
@@ -118,6 +119,19 @@ def _kpi_card(
     )
 
 
+def _format_cme_mass(m_override_g: float | None) -> str:
+    """Return the CME mass value shown in the inputs-used section."""
+    return f"{m_override_g:.2e} g" if m_override_g is not None else ""
+
+
+def _format_cme_mass_from_v_apex(v_apex_kms: float, m_override_g: float | None) -> str:
+    """Return the displayed CME mass, using Pluta when no override is set."""
+    if m_override_g is not None:
+        return _format_cme_mass(m_override_g)
+    mass_g = get_CME_mass_pluta(v_apex_kms, return_with_unit=False)
+    return f"{mass_g:.2e} g"
+
+
 # ---------------------------------------------------------------------------
 # Initialise session state + render sidebar
 # ---------------------------------------------------------------------------
@@ -144,7 +158,7 @@ st.caption(
 _obs_clean = (
     obs_df.dropna(subset=["datetime", "height"])
     .loc[lambda df: df["height"] > 0]
-    .sort_values("datetime")
+    .sort_values(by="datetime")  # pyright: ignore[reportCallIssue]
     .reset_index(drop=True)
 )
 has_obs = len(_obs_clean) >= 2
@@ -432,6 +446,7 @@ with tab2:
         with st.expander(t("page.sim.inputs_dbm"), expanded=False):
             d = results.derived
             _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
+            _mass = _format_cme_mass_from_v_apex(d.v_apex_kms, stored_config.m_override_g)
             ec1, ec2 = st.columns(2)
             ec1.metric(
                 "𝒓₀ [R☉]",
@@ -490,6 +505,11 @@ with tab2:
                 f"{stored_config.c_d}",
                 help=t("page.sim.metric.cd_help"),
             )
+            st.metric(
+                "CME mass",
+                _mass,
+                help=t("page.sim.metric.mass_help"),
+            )
 
         if results.dbm_series:
             dbm_fig = build_single_model_figure(
@@ -547,11 +567,7 @@ with tab2:
         with st.expander(t("page.sim.inputs_modbm"), expanded=False):
             d = results.derived
             _v0_note = " *(override)*" if stored_config.v0_override_kms is not None else ""
-            _mass = (
-                f"{stored_config.m_override_g:.2e} g"
-                if stored_config.m_override_g
-                else "Pluta (2018)"
-            )
+            _mass = _format_cme_mass_from_v_apex(d.v_apex_kms, stored_config.m_override_g)
             ec1, ec2 = st.columns(2)
             ec1.metric(
                 "𝒓₀ [R☉]",
