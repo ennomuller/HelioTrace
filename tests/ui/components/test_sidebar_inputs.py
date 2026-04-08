@@ -8,12 +8,14 @@ from datetime import datetime
 
 import pandas as pd
 import pytest
+from streamlit.testing.v1 import AppTest
 
-from heliotrace.ui.components import sidebar_inputs
 from heliotrace.ui.components.sidebar_inputs import (
     _compute_task_states,
     _get_status_led,
+    _normalise_gcs_inputs,
     _normalise_obs_df,
+    _parse_float,
     render_sidebar,
 )
 
@@ -43,149 +45,62 @@ def _complete_obs_frame() -> pd.DataFrame:
     )
 
 
-class _FakeContext:
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb) -> bool:
-        return False
+def test_parse_float_returns_default_on_empty_string() -> None:
+    assert _parse_float(None, 42.0) == 42.0
+    assert _parse_float("", 42.0) == 42.0
+    assert _parse_float("   ", 42.0) == 42.0
 
 
-class _FakeColumn(_FakeContext):
-    def __init__(self, session_state: dict[str, object]) -> None:
-        self._session_state = session_state
-
-    def number_input(self, *_args, value: object = None, key: str | None = None, **_kwargs):
-        if key is not None:
-            self._session_state[key] = value
-        return value
+def test_parse_float_returns_default_on_invalid_string() -> None:
+    assert _parse_float("abc", 42.0) == 42.0
 
 
-class _FakeColumnConfig:
-    @staticmethod
-    def DatetimeColumn(*_args, **_kwargs) -> object:
-        return object()
-
-    @staticmethod
-    def NumberColumn(*_args, **_kwargs) -> object:
-        return object()
+def test_parse_float_returns_parsed_float() -> None:
+    assert _parse_float("3.14") == 3.14
+    assert _parse_float(" -2.5 ") == -2.5
 
 
-class _FakeStreamlit:
-    def __init__(self) -> None:
-        self.session_state: dict[str, object] = {}
-        self.sidebar = _FakeContext()
-        self.column_config = _FakeColumnConfig()
-
-    def markdown(self, *_args, **_kwargs) -> None:
-        return None
-
-    def container(self, *_args, **_kwargs) -> _FakeContext:
-        return _FakeContext()
-
-    def button(self, *_args, **_kwargs) -> bool:
-        return False
-
-    def title(self, *_args, **_kwargs) -> None:
-        return None
-
-    def expander(self, *_args, **_kwargs) -> _FakeContext:
-        return _FakeContext()
-
-    def text_input(self, *_args, key: str | None = None, value: object = "", **_kwargs):
-        if key is None:
-            return value
-        return self.session_state.setdefault(key, value)
-
-    def selectbox(
-        self, *_args, options: list[object], index: int = 0, key: str | None = None, **_kwargs
-    ):
-        choice = options[index]
-        if key is not None:
-            self.session_state[key] = choice
-        return choice
-
-    def columns(self, count: int) -> tuple[_FakeColumn, ...]:
-        return tuple(_FakeColumn(self.session_state) for _ in range(count))
-
-    def number_input(self, *_args, key: str | None = None, value: object = None, **_kwargs):
-        if key is not None:
-            self.session_state[key] = value
-        return value
-
-    def caption(self, *_args, **_kwargs) -> None:
-        return None
-
-    def warning(self, *_args, **_kwargs) -> None:
-        return None
-
-    def error(self, *_args, **_kwargs) -> None:
-        return None
-
-    def info(self, *_args, **_kwargs) -> None:
-        return None
-
-    def success(self, *_args, **_kwargs) -> None:
-        return None
-
-    def radio(self, *_args, options: list[object], key: str | None = None, **_kwargs):
-        choice = self.session_state.get(key, options[0]) if key is not None else options[0]
-        if key is not None:
-            self.session_state[key] = choice
-        return choice
-
-    def slider(self, *_args, key: str | None = None, min_value: object = None, **_kwargs):
-        value = self.session_state.get(key, min_value) if key is not None else min_value
-        if key is not None:
-            self.session_state[key] = value
-        return value
-
-    def data_editor(
-        self, data: pd.DataFrame, *_args, key: str | None = None, **_kwargs
-    ) -> pd.DataFrame:
-        frame = data.copy()
-        if key is not None:
-            self.session_state[key] = frame
-        return frame
-
-    def divider(self) -> None:
-        return None
-
-    def rerun(self) -> None:
-        raise AssertionError("rerun should not be triggered in the sidebar smoke test")
+def test_normalise_gcs_inputs_wraps_longitude() -> None:
+    assert _normalise_gcs_inputs("-190.0", "0", "0", "45", "0.5")[0] == pytest.approx(170.0)
+    assert _normalise_gcs_inputs("190.0", "0", "0", "45", "0.5")[0] == pytest.approx(-170.0)
 
 
-def test_render_sidebar_importable() -> None:
-    assert callable(render_sidebar)
+def test_normalise_gcs_inputs_clamps_latitude_and_tilt() -> None:
+    assert _normalise_gcs_inputs("0", "-100.0", "100.0", "45", "0.5")[1:3] == (-90.0, 90.0)
 
 
-def test_render_sidebar_returns_default_tuple_without_ui_side_effects(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    fake_st = _FakeStreamlit()
-    monkeypatch.setattr(sidebar_inputs, "st", fake_st)
-    monkeypatch.setattr(sidebar_inputs, "t", lambda key: key)
-    monkeypatch.setattr(
-        sidebar_inputs,
-        "TARGET_PRESETS",
-        {"Earth": {"lon": 0.0, "lat": 0.0, "distance": 1.0}, "Custom": None},
-    )
+def test_normalise_gcs_inputs_clamps_half_angle() -> None:
+    assert _normalise_gcs_inputs("0", "0", "0", "0.0", "0.5")[3] == 1.0
+    assert _normalise_gcs_inputs("0", "0", "0", "90.0", "0.5")[3] == 89.99
 
-    config, gcs_params, obs_df, run_clicked, task_states = render_sidebar()
 
-    assert config.event_str == "unknown"
-    assert config.target.name == "Earth"
-    assert gcs_params.lon_deg == 0.0
-    assert gcs_params.half_angle_deg == 25.0
-    assert obs_df.empty
-    assert run_clicked is False
-    assert task_states == {
-        "event": "default",
-        "target": "default",
-        "gcs": "missing",
-        "ht": "missing",
-        "drag": "default",
-    }
+def test_normalise_gcs_inputs_clamps_kappa() -> None:
+    assert _normalise_gcs_inputs("0", "0", "0", "45", "0.0")[4] == 0.01
+    assert _normalise_gcs_inputs("0", "0", "0", "45", "1.0")[4] == 0.99
+
+
+def test_render_sidebar_renders_without_exceptions() -> None:
+    def app_run() -> None:
+
+        render_sidebar()
+
+    at = AppTest.from_function(app_run)
+    at.run()
+
+    assert not at.exception
+
+    # Assert Run Button State
+    run_btn = at.button(key="sb_run_button")
+    assert run_btn.disabled is True
+
+    # Assert Fill Example Button
+    fill_example_btn = at.button(key="sb_fill_example_button")
+    fill_example_btn.click().run()
+
+    assert at.session_state["sb_event_str"] == "Halo CME · 2023-10-28"
+
+    # Assert Expander Existence - Verify the number of expanders
+    assert len(at.sidebar.expander) >= 5
 
 
 @pytest.mark.parametrize(
