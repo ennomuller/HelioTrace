@@ -12,6 +12,22 @@ from heliotrace.i18n import _get_lang_toggle_props
 from heliotrace.locale.de import DE
 from heliotrace.locale.en import EN
 
+_SIDEBAR_STATUS_KEYS = [
+    "sidebar.fill_example",
+    "sidebar.fill_example_help",
+    "sidebar.status_label",
+    "sidebar.status_mapping",
+    "sidebar.status_legend",
+    "sidebar.status_missing",
+    "sidebar.status_default",
+    "sidebar.status_ready",
+    "sidebar.section_event",
+    "sidebar.section_target",
+    "sidebar.section_gcs",
+    "sidebar.section_ht",
+    "sidebar.section_drag",
+]
+
 # ---------------------------------------------------------------------------
 # Key parity
 # ---------------------------------------------------------------------------
@@ -31,6 +47,12 @@ def test_en_keys_subset_of_de() -> None:
 
 def test_en_and_de_have_same_key_count() -> None:
     assert len(EN) == len(DE)
+
+
+@pytest.mark.parametrize("key", _SIDEBAR_STATUS_KEYS)
+def test_sidebar_status_keys_exist_in_both_locales(key: str) -> None:
+    assert key in EN
+    assert key in DE
 
 
 # ---------------------------------------------------------------------------

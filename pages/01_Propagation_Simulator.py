@@ -122,7 +122,8 @@ def _kpi_card(
 # Initialise session state + render sidebar
 # ---------------------------------------------------------------------------
 init_session_state()
-config, gcs_params, obs_df, run_clicked, gcs_params_entered = render_sidebar()
+config, gcs_params, obs_df, run_clicked, task_states = render_sidebar()
+gcs_params_entered = task_states["gcs"] == "ready"
 render_lang_toggle(t("page.sim.title"))
 
 # ---------------------------------------------------------------------------
@@ -301,7 +302,6 @@ with tab_kin:
 # ============================================================
 with tab2:
     st.subheader(t("page.sim.prop_subheader"))
-    st.markdown(t("page.sim.prop_info"))
 
     # --------------------------------------------------------
     # Trigger on button press

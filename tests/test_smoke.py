@@ -73,6 +73,56 @@ def test_simulation_importable() -> None:
     from heliotrace.simulation.runner import derive_gcs_params, run_full_simulation  # noqa: F401
 
 
+def test_page_uses_sidebar_task_states() -> None:
+    source = _PAGE_PATH.read_text()
+    assert "config, gcs_params, obs_df, run_clicked, task_states = render_sidebar()" in source
+    assert 'gcs_params_entered = task_states["gcs"] == "ready"' in source
+
+
+def test_sidebar_fill_example_uses_callback() -> None:
+    sidebar_source = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "heliotrace"
+        / "ui"
+        / "components"
+        / "sidebar_inputs.py"
+    ).read_text()
+    assert 't("sidebar.fill_example")' in sidebar_source
+    assert "use_container_width=True" in sidebar_source
+    assert "on_click=_fill_example" in sidebar_source
+
+
+def test_sidebar_mass_override_uses_text_input() -> None:
+    sidebar_source = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "heliotrace"
+        / "ui"
+        / "components"
+        / "sidebar_inputs.py"
+    ).read_text()
+    assert "m_override_str = st.text_input(" in sidebar_source
+    assert 'key="sb_mass_override"' in sidebar_source
+
+
+def test_sidebar_run_button_appears_before_title() -> None:
+    sidebar_source = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "heliotrace"
+        / "ui"
+        / "components"
+        / "sidebar_inputs.py"
+    ).read_text()
+
+    run_index = sidebar_source.index('with st.container(key="sidebar-run-button")')
+    title_index = sidebar_source.index('st.title(t("sidebar.title"))')
+    example_index = sidebar_source.index('with st.container(key="sidebar-example-button")')
+
+    assert run_index < title_index < example_index
+
+
 # ---------------------------------------------------------------------------
 # Physics unit tests
 # ---------------------------------------------------------------------------

@@ -21,7 +21,7 @@ DE: dict[str, str] = {
         "📊 **Ankunftsprognose erhalten** "
     ),
     "page.home.quickstart_tip": (
-        "**⚡ Beispiel laden** drücken, um den vollständigen Workflow sofort mit "
+        "**⚡ Beispiel-Ereignis laden** drücken, um den vollständigen Workflow sofort mit "
         "echten CME-Daten auszuprobieren!"
     ),
     "page.home.features_title": "✨ Funktionen",
@@ -134,8 +134,8 @@ DE: dict[str, str] = {
     "page.sim.tab_prop": "📈 Ausbreitungsergebnisse",
     "page.sim.gcs_subheader": "GCS-Modell (3D-Geometrie)",
     "page.sim.gcs_info": (
-        "ℹ️ Alle fünf **GCS-Parameter** in der Seitenleiste eingeben — oder "
-        "**⚡ Beispiel laden** drücken — um die 3D-Geometrie anzuzeigen."
+        "ℹ️ Alle fünf **GCS-Parameter** in der Seitenleiste eingeben — oder optional "
+        "**⚡ Beispiel-Ereignis laden** — um die 3D-Geometrie anzuzeigen."
     ),
     "page.sim.gcs_spinner": "GCS-Geometrie berechnen… (nach dem ersten Durchlauf gecacht)",
     "page.sim.gcs_hit": (
@@ -147,10 +147,10 @@ DE: dict[str, str] = {
         "Der GCS-CME-Körper umfasst die Zielrichtung nicht ausreichend. "
         "Längengrad, Breitengrad oder Halbwinkel anpassen."
     ),
-    "page.sim.ht_subheader": "Höhen-Zeit-Diagramm",
+    "page.sim.ht_subheader": "Höhe-Zeit-Diagramm",
     "page.sim.ht_info": (
-        "ℹ️ Mindestens **2 Beobachtungen** in der Seitenleiste hinzufügen, "
-        "um den H-T-Fit und die Apex-Geschwindigkeit zu berechnen."
+        "ℹ️ Mindestens **2 Beobachtungen** in der Seitenleiste hinzufügen — oder optional "
+        "**⚡ Beispiel-Ereignis laden** — um den H-T-Fit und die Apex-Geschwindigkeit zu berechnen."
     ),
     "page.sim.metric.apex_velocity": "Apex-Geschwindigkeit",
     "page.sim.metric.apex_velocity_help": (
@@ -171,10 +171,6 @@ DE: dict[str, str] = {
     "page.sim.fit_detail.n_obs": "Beobachtungen",
     "page.sim.fit_detail.height_error": "Höhenfehler",
     "page.sim.prop_subheader": "Reibungsbasierte Ausbreitung",
-    "page.sim.prop_info": (
-        "**▶ Simulation starten** in der Seitenleiste drücken, um DBM- und MoDBM-Trajektorien "
-        "und Ankunftsvorhersagen für das gewählte Ziel zu berechnen."
-    ),
     "page.sim.no_obs_warning": (
         "⚠️ Vor dem Start mindestens 2 Beobachtungen in der Seitenleiste hinzufügen."
     ),
@@ -185,7 +181,7 @@ DE: dict[str, str] = {
         "Simulation mit unerwartetem Fehler abgebrochen: {exc_type}: {exc}"
     ),
     "page.sim.no_results_info": (
-        "Noch keine Ergebnisse. Parameter in der Seitenleiste konfigurieren "
+        "ℹ️ Noch keine Ergebnisse. Parameter in der Seitenleiste konfigurieren "
         "und **▶ Simulation starten** drücken."
     ),
     "page.sim.geom_miss": (
@@ -270,17 +266,28 @@ DE: dict[str, str] = {
     # Sidebar
     # ------------------------------------------------------------------ #
     "sidebar.title": "⚙️ Konfiguration",
-    "sidebar.fill_example": "⚡ Beispiel laden",
+    "sidebar.fill_example": "⚡ Beispiel-Ereignis laden",
     "sidebar.fill_example_help": (
-        "Alle Felder mit dem Halloween-CME-Ereignis vom 2023-10-28 befüllen."
+        "Das Halloween-CME-Beispiel vom 2023-10-28 laden und die aktuellen Sidebar-Felder überschreiben."
     ),
-    "sidebar.event_title": "📅 Ereignisinfo",
+    "sidebar.status_label": "Konfigurationsstatus",
+    "sidebar.status_mapping": "Legende",
+    "sidebar.status_legend": (
+        ":gray[◻] Unverändert: Erforderliche Eingaben sind noch nicht abgeschlossen.\n"
+        ":green[☑] Fertig: Genug Daten sind vorhanden, um die Simulation zu starten."
+    ),
+    "sidebar.status_missing": "Unverändert: Erforderliche Eingaben sind noch nicht abgeschlossen.",
+    "sidebar.status_default": "Unverändert: Erforderliche Eingaben sind noch nicht abgeschlossen.",
+    "sidebar.status_ready": "Fertig: Genug Daten sind vorhanden, um die Simulation zu starten.",
+    "sidebar.event_title": "📅 Ereignisinformationen",
+    "sidebar.section_event": "Event",
     "sidebar.event_label": "Ereignisbezeichnung",
     "sidebar.event_placeholder": "z.B. Halo CME · 2023-10-28",
     "sidebar.event_help": (
         "Freitext-Bezeichnung für Plot-Titel und Beschreibungen (max. 40 Zeichen)."
     ),
-    "sidebar.target_title": "🎯 Ziel",
+    "sidebar.target_title": "🎯 Zielkonfiguration",
+    "sidebar.section_target": "Ziel",
     "sidebar.target_body": "Zielkörper",
     "sidebar.target_body_help": (
         "Vorkonfiguriertes Ziel auswählen oder 'Benutzerdefiniert' für "
@@ -291,7 +298,11 @@ DE: dict[str, str] = {
     "sidebar.target_lat": "Lat [deg]",
     "sidebar.target_dist": "Entfernung [AU]",
     "sidebar.target_caption": "Lon: **{lon}°** | Lat: **{lat}°** | Entfernung: **{dist} AU**",
-    "sidebar.gcs_title": "🐚 GCS-Parameter",
+    "sidebar.gcs_title": "🐚 GCS-Geometrieparameter",
+    "sidebar.section_gcs": "3D-Form",
+    "sidebar.gcs_caption": (
+        "3D-Formparameter aus der Anwendung des GCS-Modells auf Koronagraph-Beobachtungen."
+    ),
     "sidebar.gcs_lon": "Lon 𝝓 [deg]",
     "sidebar.gcs_lon_placeholder": "[-180, 180]",
     "sidebar.gcs_lon_help": "Stonyhurst-heliografische Länge 𝝓 der CME-Quellregion [deg].",
@@ -328,7 +339,8 @@ DE: dict[str, str] = {
     "sidebar.gcs_ha_err_hi": "❌ Halbwinkel 𝜶 muss < 90° sein. Begrenzt auf 89.99°.",
     "sidebar.gcs_kappa_err_hi": "❌ Seitenverhältnis 𝜿 muss < 1 sein. Begrenzt auf 0.99.",
     "sidebar.gcs_kappa_err_lo": "❌ Seitenverhältnis 𝜿 muss > 0 sein. Begrenzt auf 0.01.",
-    "sidebar.obs_title": "📋 Beobachtungen",
+    "sidebar.obs_title": "📋 Beobachtungstabelle (H-T-Daten)",
+    "sidebar.section_ht": "Hoehe-Zeit",
     "sidebar.obs_caption": "CME-Apex-Höhen aus Koronagraphen-Bildern.",
     "sidebar.obs_time_col": "Zeit (UTC)",
     "sidebar.obs_time_help": (
@@ -348,7 +360,8 @@ DE: dict[str, str] = {
     "sidebar.height_error_zero_info": (
         "ℹ️ Höhenfehler = 0 R☉: Alle Beobachtungen als exakt behandelt (ungewichteter Fit)."
     ),
-    "sidebar.drag_title": "🪂 Reibungsparameter",
+    "sidebar.drag_title": "🪂 Drag-Modell-Parameter",
+    "sidebar.section_drag": "Ausbreitung",
     "sidebar.dbm_only": "**Nur DBM**",
     "sidebar.wind_speed": "Sonnenwindgeschwindigkeit w [km/s]",
     "sidebar.wind_speed_help": "Konstante Sonnenwindgeschwindigkeit im Standard-DBM.",
@@ -367,17 +380,18 @@ DE: dict[str, str] = {
     "sidebar.c_d_err": "❌ Reibungskoeffizient muss > 0 sein. Begrenzt auf 0.01.",
     "sidebar.c_d_info": ("ℹ️ c_d = {val} ist ungewöhnlich hoch (typisch: 0.5–2.0, Cargill 2004)."),
     "sidebar.optional_overrides": "Optionale Überschreibungen",
-    "sidebar.toa": "Erwartete Ankunftszeit (optional)",
+    "sidebar.toa": "Erwartete Ankunftszeit",
     "sidebar.toa_placeholder": "DD/MM/YYYY HH:MM:SS",
     "sidebar.toa_help": (
         "Beobachtete/vorhergesagte Ankunft zum Vergleich. Leer lassen zum Überspringen."
     ),
     "sidebar.toa_valid": "✓ Gültiges Ankunftszeitformat",
     "sidebar.toa_invalid": "⚠ Erwartetes Format: DD/MM/YYYY HH:MM:SS",
-    "sidebar.mass_override": "CME-Masse überschreiben [g]  (0 = Pluta-Formel)",
+    "sidebar.mass_override": "CME-Masse überschreiben [g]",
     "sidebar.mass_override_help": (
-        "Pluta-(2018)-Massenformel überschreiben. 0 eingeben, um die Formel beizubehalten."
+        "Freies Eingabefeld für die Masse in Gramm. Leer lassen, um die Pluta-(2018)-Formel beizubehalten."
     ),
+    "sidebar.mass_override_err": "⚠ Die Massenüberschreibung muss eine positive Zahl in Gramm sein.",
     "sidebar.v0_override": "v₀ überschreiben [km/s]  (leer = geometrisch abgeleitet)",
     "sidebar.v0_override_placeholder": "z.B. 600",
     "sidebar.v0_override_help": (

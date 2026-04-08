@@ -131,7 +131,7 @@ EN: dict[str, str] = {
     "page.sim.gcs_subheader": "GCS Model (3D Geometry)",
     "page.sim.gcs_info": (
         "ℹ️ Enter all five **GCS parameters** in the sidebar — or press "
-        "**⚡ Fill with example** — to view the 3D geometry."
+        "**⚡ Load example event** — to view the 3D geometry."
     ),
     "page.sim.gcs_spinner": "Computing GCS geometry…  (cached after first run)",
     "page.sim.gcs_hit": (
@@ -145,7 +145,8 @@ EN: dict[str, str] = {
     ),
     "page.sim.ht_subheader": "Height-Time Diagram",
     "page.sim.ht_info": (
-        "ℹ️ Add at least **2 observations** in the sidebar to compute the H-T fit and apex velocity."
+        "ℹ️ Add at least **2 observations** in the sidebar — or press "
+        "**⚡ Load example event** — to compute the H-T fit and apex velocity."
     ),
     "page.sim.metric.apex_velocity": "Apex Velocity",
     "page.sim.metric.apex_velocity_help": (
@@ -164,10 +165,6 @@ EN: dict[str, str] = {
     "page.sim.fit_detail.n_obs": "Observations",
     "page.sim.fit_detail.height_error": "Height Error",
     "page.sim.prop_subheader": "Drag-Based Propagation",
-    "page.sim.prop_info": (
-        "Press **▶ Run Simulation** in the sidebar to compute DBM and MoDBM trajectories "
-        "and arrival predictions at the selected target."
-    ),
     "page.sim.no_obs_warning": "⚠️ Add at least 2 observations in the sidebar before running.",
     "page.sim.sim_spinner": "Running DBM & MoDBM simulations…",
     "page.sim.sim_success": "✅ Simulation complete!",
@@ -176,7 +173,7 @@ EN: dict[str, str] = {
         "Simulation failed with an unexpected error: {exc_type}: {exc}"
     ),
     "page.sim.no_results_info": (
-        "No results yet. Configure parameters in the sidebar and press **▶ Run Simulation**."
+        "ℹ️ No results yet. Configure parameters in the sidebar and press **▶ Run Simulation**."
     ),
     "page.sim.geom_miss": (
         "**GEOMETRY: MISS** — The simulation was run but the ICME does not intercept "
@@ -257,13 +254,26 @@ EN: dict[str, str] = {
     # Sidebar
     # ------------------------------------------------------------------ #
     "sidebar.title": "⚙️ Configuration",
-    "sidebar.fill_example": "⚡ Fill with example",
-    "sidebar.fill_example_help": "Auto-fill all fields with the 2023-10-28 Halloween CME event.",
-    "sidebar.event_title": "📅 Event Info",
+    "sidebar.fill_example": "⚡ Load example event",
+    "sidebar.fill_example_help": (
+        "Load the 2023-10-28 Halloween CME example and overwrite the current sidebar fields."
+    ),
+    "sidebar.status_label": "Configuration Status",
+    "sidebar.status_mapping": "Legend",
+    "sidebar.status_legend": (
+        ":gray[◻] Unmodified: Required inputs have not been finalized yet.\n"
+        ":green[☑] Finished: Enough data is ready to run the simulation."
+    ),
+    "sidebar.status_missing": "Unmodified: Required inputs have not been finalized yet.",
+    "sidebar.status_default": "Unmodified: Required inputs have not been finalized yet.",
+    "sidebar.status_ready": "Finished: Enough data is ready to run the simulation.",
+    "sidebar.event_title": "📅 Event Information",
+    "sidebar.section_event": "Event",
     "sidebar.event_label": "Event Label",
     "sidebar.event_placeholder": "e.g. Halo CME · 2023-10-28",
     "sidebar.event_help": "Free-form label used in plot titles and descriptions (max 40 characters).",
-    "sidebar.target_title": "🎯 Target",
+    "sidebar.target_title": "🎯 Target Configuration",
+    "sidebar.section_target": "Target",
     "sidebar.target_body": "Target body",
     "sidebar.target_body_help": (
         "Select a preconfigured target, or choose 'Custom' to enter coordinates manually."
@@ -273,7 +283,9 @@ EN: dict[str, str] = {
     "sidebar.target_lat": "Lat [deg]",
     "sidebar.target_dist": "Distance [AU]",
     "sidebar.target_caption": "Lon: **{lon}°** | Lat: **{lat}°** | Distance: **{dist} AU**",
-    "sidebar.gcs_title": "🐚 GCS Parameters",
+    "sidebar.gcs_title": "🐚 GCS Geometrical Parameters",
+    "sidebar.section_gcs": "3D Shape",
+    "sidebar.gcs_caption": "3D shape parameters derived by applying the GCS model to coronagraph observations.",
     "sidebar.gcs_lon": "Lon 𝝓 [deg]",
     "sidebar.gcs_lon_placeholder": "[-180, 180]",
     "sidebar.gcs_lon_help": "Stonyhurst heliographic longitude 𝝓 of the CME source region [deg].",
@@ -310,7 +322,8 @@ EN: dict[str, str] = {
     "sidebar.gcs_ha_err_hi": "❌ Half-angle 𝜶 must be < 90°. Clamped to 89.99°.",
     "sidebar.gcs_kappa_err_hi": "❌ Aspect ratio 𝜿 must be < 1. Clamped to 0.99.",
     "sidebar.gcs_kappa_err_lo": "❌ Aspect ratio 𝜿 must be > 0. Clamped to 0.01.",
-    "sidebar.obs_title": "📋 Observations",
+    "sidebar.obs_title": "📋 Observation Table (H-T Data)",
+    "sidebar.section_ht": "Height-Time",
     "sidebar.obs_caption": "CME apex heights from coronagraph images.",
     "sidebar.obs_time_col": "Time (UTC)",
     "sidebar.obs_time_help": (
@@ -330,7 +343,8 @@ EN: dict[str, str] = {
     "sidebar.height_error_zero_info": (
         "ℹ️ Height error = 0 R☉: all observations treated as exact (unweighted fit)."
     ),
-    "sidebar.drag_title": "🪂 Drag Parameters",
+    "sidebar.drag_title": "🪂 Drag Model Parameters",
+    "sidebar.section_drag": "Propagation",
     "sidebar.dbm_only": "**DBM only**",
     "sidebar.wind_speed": "Solar wind speed w [km/s]",
     "sidebar.wind_speed_help": "Constant ambient solar wind speed used by the standard DBM.",
@@ -348,15 +362,16 @@ EN: dict[str, str] = {
     "sidebar.c_d_err": "❌ Drag coefficient must be > 0. Clamped to 0.01.",
     "sidebar.c_d_info": ("ℹ️ c_d = {val} is on the high end (typical: 0.5–2.0, Cargill 2004)."),
     "sidebar.optional_overrides": "Optional overrides",
-    "sidebar.toa": "Expected arrival time (optional)",
+    "sidebar.toa": "Expected arrival time",
     "sidebar.toa_placeholder": "DD/MM/YYYY HH:MM:SS",
     "sidebar.toa_help": "Observed/predicted arrival for comparison. Leave blank to skip.",
     "sidebar.toa_valid": "✓ Valid arrival time format",
     "sidebar.toa_invalid": "⚠ Expected format: DD/MM/YYYY HH:MM:SS",
-    "sidebar.mass_override": "CME mass override [g]  (0 = Pluta formula)",
+    "sidebar.mass_override": "CME mass override [g]",
     "sidebar.mass_override_help": (
-        "Override the Pluta (2018) mass formula. Enter 0 to keep the formula."
+        "Free-entry mass override in grams. Leave blank to keep the Pluta (2018) formula."
     ),
+    "sidebar.mass_override_err": "⚠ Mass override must be a positive number in grams.",
     "sidebar.v0_override": "v₀ override [km/s]  (blank = geometry-derived)",
     "sidebar.v0_override_placeholder": "e.g. 600",
     "sidebar.v0_override_help": (
