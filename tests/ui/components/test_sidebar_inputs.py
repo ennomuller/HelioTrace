@@ -11,12 +11,13 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from heliotrace.ui.components.sidebar_inputs import (
+    TaskSource,
+    TaskStatus,
     _compute_task_states,
     _get_status_led,
     _normalise_gcs_inputs,
     _normalise_obs_df,
     _parse_float,
-    render_sidebar,
 )
 
 
@@ -24,8 +25,8 @@ def _obs_frame(rows: list[dict[str, object]]) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["datetime", "height"])
 
 
-def _sources(**overrides: str) -> dict[str, str]:
-    sources = {
+def _sources(**overrides: TaskSource) -> dict[str, TaskSource]:
+    sources: dict[str, TaskSource] = {
         "event": "system_default",
         "target": "system_default",
         "gcs": "system_default",
@@ -81,6 +82,7 @@ def test_normalise_gcs_inputs_clamps_kappa() -> None:
 
 def test_render_sidebar_renders_without_exceptions() -> None:
     def app_run() -> None:
+        from heliotrace.ui.components.sidebar_inputs import render_sidebar
 
         render_sidebar()
 
@@ -111,7 +113,7 @@ def test_render_sidebar_renders_without_exceptions() -> None:
         ("ready", ":green[⏹]"),
     ],
 )
-def test_get_status_led_returns_expected_marker(state: str, expected_led: str) -> None:
+def test_get_status_led_returns_expected_marker(state: TaskStatus, expected_led: str) -> None:
     assert _get_status_led(state) == expected_led
 
 
@@ -165,7 +167,7 @@ def test_compute_task_states_marks_system_default_target_as_default() -> None:
     [("Earth", "example"), ("Parker Solar Probe (example)", "user"), ("Custom", "user")],
 )
 def test_compute_task_states_marks_example_or_custom_target_as_ready(
-    target_choice: str, source: str
+    target_choice: str, source: TaskSource
 ) -> None:
     states = _compute_task_states(
         event_str_raw="Event",
