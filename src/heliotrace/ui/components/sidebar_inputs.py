@@ -216,20 +216,28 @@ def _get_observation_frames() -> tuple[int, pd.DataFrame, pd.DataFrame]:
     counter = int(st.session_state.get("sb_editor_counter", 0))
     applied = int(st.session_state.get("_obs_counter_applied", 0))
 
-    if counter > applied:
-        obs_init = _normalise_obs_df(pd.DataFrame(DEFAULT_OBS_ROWS))
+    # We must maintain a stable 'obs_init' for st.data_editor to prevent resets.
+    # We only update this stable base when the counter increments (e.g. Fill Example).
+    if "sb_obs_base" not in st.session_state or counter > applied:
+        if counter > applied and "sb_obs_data" not in st.session_state:
+            # Explicit reset requested (e.g. via _fill_example)
+            obs_init = _normalise_obs_df(pd.DataFrame(DEFAULT_OBS_ROWS))
+        elif "sb_obs_data" in st.session_state:
+            # Re-base on current data
+            obs_init = st.session_state["sb_obs_data"].copy()
+        else:
+            # Initial start
+            obs_init = _EMPTY_OBS_DF.copy()
+
+        st.session_state["sb_obs_base"] = obs_init
         st.session_state["_obs_counter_applied"] = counter
-        return counter, obs_init.copy(), obs_init.copy()
-
-    if "sb_obs_data" in st.session_state:
-        obs_init = _normalise_obs_df(st.session_state["sb_obs_data"].copy())
     else:
-        obs_init = _EMPTY_OBS_DF.copy()
+        obs_init = st.session_state["sb_obs_base"]
 
-    editor_key = f"obs_editor_{counter}"
-    current_obs = _coerce_obs_df(st.session_state.get(editor_key))
-    if current_obs is None:
-        current_obs = obs_init.copy()
+    # current_obs is used for status LEDs; it should reflect the latest known data.
+    # sb_obs_data stores the full DataFrame from the end of the previous run.
+    current_obs = st.session_state.get("sb_obs_data", obs_init).copy()
+
     return counter, obs_init, current_obs
 
 
