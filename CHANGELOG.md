@@ -6,6 +6,39 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.4.0] — 2026-04-21
+
+### Added
+
+#### Application
+
+- **Sidebar Input Rework** — Completely refactored the sidebar component for better modularity, readability, and user feedback.
+- **Task Status Indicators** — Visual "LED" markers in the sidebar sections (Event, Target, GCS, Observations, Drag) indicate whether inputs are in a default state (white), ready (green), or missing/incomplete (gray).
+- **Interactive Observation Editor** — Stabilized `st.data_editor` for height-time observations, ensuring user edits persist correctly during the session.
+
+#### i18n
+
+- Expanded English and German locales with comprehensive keys for all sidebar sections, tooltips, and validation messages.
+- Synchronized translation labels across all UI components.
+
+#### Testing
+
+- **Component Unit Tests** — Added a substantial test suite for sidebar components, including GCS normalization logic and task state computation.
+- **i18n Coverage** — Added tests ensuring all locale keys are present and non-empty for both English and German.
+- **Integration Tests** — Added smoke tests verifying sidebar behavior and data flow between components.
+
+### Changed
+
+- **Run Simulation Button** — Moved to the top of the sidebar for immediate accessibility, regardless of scroll position.
+- **GCS Parameter Normalization** — Longitude, latitude, tilt, and half-angle are now automatically normalized/clamped to valid physical ranges with appropriate user warnings.
+
+### Fixed
+
+- **Sidebar Typing** — Fixed type annotations in sidebar tests to align with project standards.
+- **Package Housekeeping** — Removed deprecated `gen-test` SKILL documentation.
+
+---
+
 ## [0.3.1] — 2026-04-01
 
 ### Changed
