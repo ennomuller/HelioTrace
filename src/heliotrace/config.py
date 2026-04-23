@@ -15,12 +15,24 @@ KEY_SIM_RESULTS: str = "simulation_results"
 KEY_SIM_CONFIG: str = "simulation_config"
 
 # ---------------------------------------------------------------------------
-# Target presets  (name → {lon_deg, lat_deg, distance_au} | None for Custom)
+# Target Catalogs
 # ---------------------------------------------------------------------------
+PLANET_TARGETS = [
+    "Mercury", "Venus", "Earth", "Mars", 
+    "Jupiter", "Saturn", "Uranus", "Neptune"
+]
+
+SATELLITE_TARGETS = [
+    "STEREO-A", "STEREO-B", "Parker Solar Probe", 
+    "Solar Orbiter", "SOHO", "ACE", "BepiColombo"
+]
+
+TARGET_CATEGORIES = ["Planet", "Satellite/Probe", "Custom"]
+
+# We keep TARGET_PRESETS for backwards compatibility or default testing states
 TARGET_PRESETS: dict[str, dict[str, float] | None] = {
     "Earth": {"lon": 0.0, "lat": 0.0, "distance": 1.0},
-    "Parker Solar Probe (example)": {"lon": -62.484, "lat": 2.834, "distance": 0.08},
-    "Custom": None,  # sentinel — user fills in the fields manually
+    "Custom": None,
 }
 
 # ---------------------------------------------------------------------------
