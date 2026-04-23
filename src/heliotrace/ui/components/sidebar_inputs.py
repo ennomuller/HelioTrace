@@ -133,7 +133,7 @@ def _init_sidebar_state() -> None:
         "sb_target_body": "Earth",
         "sb_target_datetime": datetime(2023, 10, 28, 12, 0),
         "sb_target_confirmed": True,  # Earth is confirmed by default
-        "sb_target_name": "Custom",
+        "sb_target_name": "Earth",
         "sb_target_lon": 0.0,
         "sb_target_lat": 0.0,
         "sb_target_dist": 1.0,
@@ -425,9 +425,15 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                 _format_section_title(t("sidebar.section_target"), task_states["target"]),
                 expanded=False,
             ):
+                cat_map = {
+                    "Planet": t("sidebar.cat_planet"),
+                    "Spacecraft": t("sidebar.cat_spacecraft"),
+                    "Custom": t("sidebar.cat_custom"),
+                }
                 category = st.selectbox(
-                    "Target Category",
+                    t("sidebar.target_category"),
                     options=TARGET_CATEGORIES,
+                    format_func=lambda x: cat_map.get(x, x),
                     key="sb_target_category",
                     on_change=_mark_section_source,
                     args=("target",),
@@ -444,7 +450,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                         st.session_state["sb_target_body"] = options[0]
 
                     body_choice = st.selectbox(
-                        "Target Body",
+                        t("sidebar.target_body"),
                         options=options,
                         key="sb_target_body",
                         on_change=_mark_section_source,
@@ -452,16 +458,16 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                     )
 
                     target_datetime = st.datetime_input(
-                        "Target Position Datetime (UTC)", key="sb_target_datetime"
+                        t("sidebar.target_datetime"), key="sb_target_datetime"
                     )
 
                     if st.button(
-                        "Calculate Position",
-                        help="Fetches real-time coordinates using the sunpy package and JPL Horizons API.",
+                        t("sidebar.calculate_position"),
+                        help=t("sidebar.calculate_position_help"),
                         use_container_width=True,
                     ):
                         try:
-                            with st.spinner(f"Fetching {body_choice} position..."):
+                            with st.spinner(t("sidebar.fetching_target", body=body_choice)):
                                 lon, lat, dist = get_target_coordinates(
                                     body_choice, target_datetime, is_planet
                                 )
@@ -476,7 +482,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                 else:
                     target_name = st.text_input(
                         t("sidebar.target_name"),
-                        value=str(st.session_state.get("sb_target_name", "Custom")),
+                        value=str(st.session_state.get("sb_target_name", "Earth")),
                         key="sb_target_name",
                         on_change=_mark_section_source,
                         args=("target",),
@@ -524,8 +530,8 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                     c_lat = st.session_state.get("sb_target_lat", 0.0)
                     c_dist = st.session_state.get("sb_target_dist", 1.0)
                     c_name = st.session_state.get("sb_target_name", "Earth")
-                    st.success(
-                        f"**Confirmed Target:** {c_name}\n\n"
+                    st.markdown(
+                        f"Target: {c_name}  \n"
                         f"Lon: {c_lon:.1f}° | Lat: {c_lat:.1f}° | Dist: {c_dist:.3f} AU"
                     )
 

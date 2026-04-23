@@ -27,7 +27,7 @@ SATELLITE_TARGETS = [
     "Solar Orbiter", "SOHO", "ACE", "BepiColombo"
 ]
 
-TARGET_CATEGORIES = ["Planet", "Satellite/Probe", "Custom"]
+TARGET_CATEGORIES = ["Planet", "Spacecraft", "Custom"]
 
 # We keep TARGET_PRESETS for backwards compatibility or default testing states
 TARGET_PRESETS: dict[str, dict[str, float] | None] = {

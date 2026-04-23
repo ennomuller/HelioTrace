@@ -288,11 +288,19 @@ DE: dict[str, str] = {
     ),
     "sidebar.target_title": "🎯 Zielkonfiguration",
     "sidebar.section_target": "Ziel",
-    "sidebar.target_body": "Zielkörper",
+    "sidebar.target_category": "Kategorie",
+    "sidebar.cat_planet": "Planet",
+    "sidebar.cat_spacecraft": "Raumsonde",
+    "sidebar.cat_custom": "Benutzerdefiniert",
+    "sidebar.target_body": "Ziel",
     "sidebar.target_body_help": (
         "Vorkonfiguriertes Ziel auswählen oder 'Benutzerdefiniert' für "
         "manuelle Koordinateneingabe wählen."
     ),
+    "sidebar.target_datetime": "Zielposition Zeitpunkt (UTC)",
+    "sidebar.calculate_position": "Position berechnen",
+    "sidebar.calculate_position_help": "Ruft Echtzeit-Koordinaten über sunpy und die JPL Horizons API ab.",
+    "sidebar.fetching_target": "Hole {body} Position...",
     "sidebar.target_name": "Zielname",
     "sidebar.target_lon": "Lon [deg]",
     "sidebar.target_lat": "Lat [deg]",
