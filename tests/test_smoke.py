@@ -226,7 +226,7 @@ def test_full_simulation_dbm_transit(reference_gcs_df: pd.DataFrame) -> None:
         w_type="slow",
         ssn=100.0,
         c_d=1.0,
-        toa_raw=None,
+        toa_datetime=None,
         m_override_g=None,
     )
 

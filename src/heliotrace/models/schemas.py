@@ -59,7 +59,7 @@ class SimulationConfig:
     c_d: float  # Drag coefficient (dimensionless)
 
     # Optional overrides
-    toa_raw: str | None = None  # Expected arrival "DD/MM/YYYY HH:MM:SS"; None → skip
+    toa_datetime: datetime | None = None  # Expected arrival time; None → skip
     m_override_g: float | None = None  # CME mass override [g]; None → use Pluta formula
     v0_override_kms: float | None = (
         None  # Hard override for v₀ toward target [km/s]; None → geometry

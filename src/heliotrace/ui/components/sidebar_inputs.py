@@ -40,7 +40,7 @@ _EXAMPLE: dict = {
     "sb_w": 390,
     "sb_w_type": "slow",
     "sb_ssn": 100,
-    "sb_toa_raw": "31/10/2023 14:00:00",
+    "sb_toa_datetime": datetime(2023, 10, 31, 14, 0),
 }
 
 _EMPTY_OBS_DF = pd.DataFrame(
@@ -131,8 +131,7 @@ def _init_sidebar_state() -> None:
         "sb_event_str": "",
         "sb_target_category": "Planet",
         "sb_target_body": "Earth",
-        "sb_target_date": datetime(2023, 10, 28),
-        "sb_target_time_input": datetime(2023, 10, 28, 12, 0).time(),
+        "sb_target_datetime": datetime(2023, 10, 28, 12, 0),
         "sb_target_confirmed": True,  # Earth is confirmed by default
         "sb_target_name": "Custom",
         "sb_target_lon": 0.0,
@@ -148,7 +147,7 @@ def _init_sidebar_state() -> None:
         "sb_w_type": "slow",
         "sb_ssn": 100,
         "sb_c_d": "1.0",
-        "sb_toa_raw": "",
+        "sb_toa_datetime": None,
         "sb_mass_override": "",
         "sb_v0_override": "",
         "sb_editor_counter": 0,
@@ -452,8 +451,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                         args=("target",),
                     )
 
-                    target_time = st.date_input("Event Date (for position)", key="sb_target_date")
-                    target_time_hhmm = st.time_input("Event Time (UTC)", key="sb_target_time_input")
+                    target_datetime = st.datetime_input(
+                        "Target Position Datetime (UTC)", key="sb_target_datetime"
+                    )
 
                     if st.button(
                         "Calculate Position",
@@ -461,10 +461,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                         use_container_width=True,
                     ):
                         try:
-                            dt_combo = datetime.combine(target_time, target_time_hhmm)
                             with st.spinner(f"Fetching {body_choice} position..."):
                                 lon, lat, dist = get_target_coordinates(
-                                    body_choice, dt_combo, is_planet
+                                    body_choice, target_datetime, is_planet
                                 )
                             st.session_state["sb_target_lon"] = lon
                             st.session_state["sb_target_lat"] = lat
@@ -747,25 +746,14 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
 
                     st.divider()
                     st.caption(t("sidebar.optional_overrides"))
-                    toa_raw = (
-                        st.text_input(
-                            t("sidebar.toa"),
-                            key="sb_toa_raw",
-                            placeholder=t("sidebar.toa_placeholder"),
-                            help=t("sidebar.toa_help"),
-                            on_change=_mark_section_source,
-                            args=("drag",),
-                        )
-                        or None
+                    toa_datetime = st.datetime_input(
+                        t("sidebar.toa"),
+                        value=st.session_state.get("sb_toa_datetime"),
+                        key="sb_toa_datetime",
+                        help=t("sidebar.toa_help"),
+                        on_change=_mark_section_source,
+                        args=("drag",),
                     )
-
-                    if toa_raw:
-                        try:
-                            datetime.strptime(toa_raw, "%d/%m/%Y %H:%M:%S")
-                            st.success(t("sidebar.toa_valid"))
-                        except ValueError:
-                            st.warning(t("sidebar.toa_invalid"))
-                            toa_raw = None
 
                     mass_override_value = st.session_state.get("sb_mass_override", "")
                     if mass_override_value == "0":
@@ -817,7 +805,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
         w_type=str(w_type or "slow"),
         ssn=float(ssn or 100),
         c_d=float(c_d or 1.0),
-        toa_raw=toa_raw,
+        toa_datetime=toa_datetime,
         m_override_g=m_override_g,
         v0_override_kms=v0_override_kms,
     )

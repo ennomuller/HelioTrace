@@ -358,12 +358,9 @@ with tab2:
         st.stop()
 
     # --------------------------------------------------------
-    # Parse expected ToA for comparison
+    # Retrieve expected ToA for comparison
     # --------------------------------------------------------
-    toa_expected: datetime | None = None
-    if stored_config and stored_config.toa_raw:
-        with contextlib.suppress(ValueError):
-            toa_expected = datetime.strptime(stored_config.toa_raw, "%d/%m/%Y %H:%M:%S")
+    toa_expected: datetime | None = stored_config.toa_datetime
 
     # --------------------------------------------------------
     # Summary KPI cards
