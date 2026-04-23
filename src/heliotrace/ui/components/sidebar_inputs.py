@@ -121,10 +121,12 @@ def _format_section_title(label: str, state: TaskStatus) -> str:
 
 def _init_sidebar_state() -> None:
     """Ensure all sidebar widget keys exist before top-down status evaluation."""
-    preset_names = list(TARGET_PRESETS.keys())
     defaults: dict[str, object] = {
         "sb_event_str": "",
-        "sb_target_body": preset_names[0],
+        "sb_target_category": "Planet",
+        "sb_target_body": "Earth",
+        "sb_target_time": None,
+        "sb_target_confirmed": True,  # Earth is confirmed by default
         "sb_target_name": "Custom",
         "sb_target_lon": 0.0,
         "sb_target_lat": 0.0,
@@ -158,7 +160,9 @@ def _fill_example() -> None:
     """Populate session state with the 2023-10-28 example event and trigger a rerun."""
     for key, val in _EXAMPLE.items():
         st.session_state[key] = val
+    st.session_state["sb_target_category"] = "Planet"
     st.session_state["sb_target_body"] = "Earth"
+    st.session_state["sb_target_confirmed"] = True
     st.session_state["sb_target_name"] = "Custom"
     st.session_state["sb_target_lon"] = 0.0
     st.session_state["sb_target_lat"] = 0.0
