@@ -21,6 +21,13 @@ Built on research from a Master's Thesis at the University of Göttingen — see
 
 ## Installation
 
+First, clone the repository:
+
+```bash
+git clone https://github.com/ennomuller/HelioTrace.git
+cd HelioTrace
+```
+
 ### Docker — quickest
 
 ```bash
