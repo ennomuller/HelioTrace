@@ -13,9 +13,15 @@ from typing import Literal
 import pandas as pd
 import streamlit as st
 
-from heliotrace.config import DEFAULT_OBS_ROWS, TARGET_PRESETS
+from heliotrace.config import (
+    DEFAULT_OBS_ROWS,
+    PLANET_TARGETS,
+    SATELLITE_TARGETS,
+    TARGET_CATEGORIES,
+)
 from heliotrace.i18n import t
 from heliotrace.models.schemas import GCSParams, SimulationConfig, TargetConfig
+from heliotrace.physics.ephemeris import EphemerisError, get_target_coordinates
 
 TaskStatus = Literal["missing", "default", "ready"]
 TaskStates = dict[str, TaskStatus]
@@ -125,7 +131,8 @@ def _init_sidebar_state() -> None:
         "sb_event_str": "",
         "sb_target_category": "Planet",
         "sb_target_body": "Earth",
-        "sb_target_time": None,
+        "sb_target_date": datetime(2023, 10, 28),
+        "sb_target_time_input": datetime(2023, 10, 28, 12, 0).time(),
         "sb_target_confirmed": True,  # Earth is confirmed by default
         "sb_target_name": "Custom",
         "sb_target_lon": 0.0,
@@ -284,7 +291,9 @@ def _normalise_gcs_inputs(
 def _compute_task_states(
     *,
     event_str_raw: str | None,
-    target_choice: str,
+    category: str,
+    body: str,
+    confirmed_status: bool,
     gcs_values: tuple[float | None, float | None, float | None, float | None, float | None],
     obs_df: pd.DataFrame,
     w: int,
@@ -302,9 +311,13 @@ def _compute_task_states(
             else "default"
         ),
         "target": (
-            "default"
-            if target_choice == "Earth" and sources["target"] == "system_default"
-            else "ready"
+            "missing"
+            if not confirmed_status
+            else (
+                "default"
+                if category == "Planet" and body == "Earth" and sources["target"] == "system_default"
+                else "ready"
+            )
         ),
         "gcs": "missing"
         if not has_gcs
@@ -330,13 +343,10 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
     """
     _init_sidebar_state()
 
-    preset_names = list(TARGET_PRESETS.keys())
     raw_event_str = str(st.session_state.get("sb_event_str", "") or "")
-    target_choice = str(st.session_state.get("sb_target_body", preset_names[0]) or preset_names[0])
-    if target_choice not in TARGET_PRESETS:
-        target_choice = preset_names[0]
-        st.session_state["sb_target_body"] = target_choice
-        _mark_section_source("target")
+    target_category = str(st.session_state.get("sb_target_category", "Planet"))
+    target_body = str(st.session_state.get("sb_target_body", "Earth"))
+    target_confirmed = bool(st.session_state.get("sb_target_confirmed", False))
 
     gcs_values = _normalise_gcs_inputs(
         st.session_state.get("sb_gcs_lon"),
@@ -349,7 +359,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
     sources = {section: _get_section_source(section) for section in _TASK_ORDER}
     task_states = _compute_task_states(
         event_str_raw=raw_event_str,
-        target_choice=target_choice,
+        category=target_category,
+        body=target_body,
+        confirmed_status=target_confirmed,
         gcs_values=gcs_values,
         obs_df=current_obs_df,
         w=int(st.session_state.get("sb_w", 390)),
@@ -414,20 +426,55 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                 _format_section_title(t("sidebar.section_target"), task_states["target"]),
                 expanded=False,
             ):
-                preset_choice = st.selectbox(
-                    t("sidebar.target_body"),
-                    options=preset_names,
-                    index=preset_names.index(target_choice),
-                    key="sb_target_body",
-                    help=t("sidebar.target_body_help"),
+                category = st.selectbox(
+                    "Target Category",
+                    options=TARGET_CATEGORIES,
+                    key="sb_target_category",
                     on_change=_mark_section_source,
                     args=("target",),
                 )
 
-                is_custom = TARGET_PRESETS[preset_choice] is None
-                preset_vals: dict[str, float] = TARGET_PRESETS.get(preset_choice) or {}  # type: ignore[assignment]
+                is_custom = category == "Custom"
+                is_planet = category == "Planet"
 
-                if is_custom:
+                if not is_custom:
+                    options = PLANET_TARGETS if is_planet else SATELLITE_TARGETS
+                    # Ensure current body is in options, otherwise default to first
+                    current_body = st.session_state.get("sb_target_body")
+                    if current_body not in options:
+                        st.session_state["sb_target_body"] = options[0]
+
+                    body_choice = st.selectbox(
+                        "Target Body",
+                        options=options,
+                        key="sb_target_body",
+                        on_change=_mark_section_source,
+                        args=("target",),
+                    )
+
+                    target_time = st.date_input("Event Date (for position)", key="sb_target_date")
+                    target_time_hhmm = st.time_input("Event Time (UTC)", key="sb_target_time_input")
+
+                    if st.button(
+                        "Calculate Position",
+                        help="Fetches real-time coordinates using the sunpy package and JPL Horizons API.",
+                        use_container_width=True,
+                    ):
+                        try:
+                            dt_combo = datetime.combine(target_time, target_time_hhmm)
+                            with st.spinner(f"Fetching {body_choice} position..."):
+                                lon, lat, dist = get_target_coordinates(
+                                    body_choice, dt_combo, is_planet
+                                )
+                            st.session_state["sb_target_lon"] = lon
+                            st.session_state["sb_target_lat"] = lat
+                            st.session_state["sb_target_dist"] = dist
+                            st.session_state["sb_target_name"] = body_choice
+                            st.session_state["sb_target_confirmed"] = True
+                        except EphemerisError as e:
+                            st.error(str(e))
+                            st.session_state["sb_target_confirmed"] = False
+                else:
                     target_name = st.text_input(
                         t("sidebar.target_name"),
                         value=str(st.session_state.get("sb_target_name", "Custom")),
@@ -469,25 +516,30 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                         on_change=_mark_section_source,
                         args=("target",),
                     )
-                else:
-                    target_name = preset_choice.split(" (")[0]
-                    target_lon = preset_vals["lon"]
-                    target_lat = preset_vals["lat"]
-                    target_dist = preset_vals["distance"]
-                    st.caption(
-                        t("sidebar.target_caption").format(
-                            lon=target_lon,
-                            lat=target_lat,
-                            dist=target_dist,
-                        )
+                    if st.button("Confirm Target", use_container_width=True):
+                        st.session_state["sb_target_confirmed"] = True
+
+                if st.session_state.get("sb_target_confirmed", False):
+                    # Display the confirmed caption
+                    c_lon = st.session_state.get("sb_target_lon", 0.0)
+                    c_lat = st.session_state.get("sb_target_lat", 0.0)
+                    c_dist = st.session_state.get("sb_target_dist", 1.0)
+                    c_name = st.session_state.get("sb_target_name", "Earth")
+                    st.success(
+                        f"**Confirmed Target:** {c_name}\n\n"
+                        f"Lon: {c_lon:.1f}° | Lat: {c_lat:.1f}° | Dist: {c_dist:.3f} AU"
                     )
 
-                target = TargetConfig(
-                    name=target_name,
-                    lon=float(target_lon),
-                    lat=float(target_lat),
-                    distance=float(target_dist),
-                )
+                    target = TargetConfig(
+                        name=c_name,
+                        lon=float(c_lon),
+                        lat=float(c_lat),
+                        distance=float(c_dist),
+                    )
+                else:
+                    st.warning("Please calculate or confirm a target.")
+                    # Provide a dummy target so the config doesn't crash before confirmation
+                    target = TargetConfig(name="Unconfirmed", lon=0.0, lat=0.0, distance=1.0)
 
             with st.expander(
                 _format_section_title(t("sidebar.section_gcs"), task_states["gcs"]),
