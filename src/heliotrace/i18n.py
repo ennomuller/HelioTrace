@@ -11,6 +11,7 @@ Usage
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import streamlit as st
 
@@ -28,14 +29,18 @@ _HEADER_THEME = {
 }
 
 
-def t(key: str) -> str:
+def t(key: str, **kwargs: Any) -> str:
     """Return the localised string for *key* in the active language.
 
     Fallback chain: DE → EN → key (so the app never shows a raw key).
+    Supports keyword interpolation via .format().
     """
     lang = st.session_state.get("lang", "en")
     locale = _LOCALES.get(lang, EN)
-    return locale.get(key, EN.get(key, key))
+    text = locale.get(key, EN.get(key, key))
+    if kwargs:
+        return text.format(**kwargs)
+    return text
 
 
 _PAGE_HEADER_CSS = f"""

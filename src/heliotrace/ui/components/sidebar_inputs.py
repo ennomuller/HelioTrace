@@ -8,7 +8,7 @@ Renders all user-controllable parameters and returns a
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Literal, cast
 
 import pandas as pd
 import streamlit as st
@@ -117,7 +117,7 @@ def _mark_section_source(section: str, source: TaskSource = "user") -> None:
 
 def _get_section_source(section: str) -> TaskSource:
     """Return the stored provenance for a sidebar section."""
-    return st.session_state.get(_SOURCE_KEYS[section], "system_default")
+    return cast(TaskSource, st.session_state.get(_SOURCE_KEYS[section], "system_default"))
 
 
 def _format_section_title(label: str, state: TaskStatus) -> str:
@@ -314,7 +314,9 @@ def _compute_task_states(
             if not confirmed_status
             else (
                 "default"
-                if category == "Planet" and body == "Earth" and sources["target"] == "system_default"
+                if category == "Planet"
+                and body == "Earth"
+                and sources["target"] == "system_default"
                 else "ready"
             )
         ),
@@ -355,7 +357,9 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
         st.session_state.get("sb_gcs_kappa"),
     )
     counter, obs_init, current_obs_df = _get_observation_frames()
-    sources = {section: _get_section_source(section) for section in _TASK_ORDER}
+    sources: dict[str, TaskSource] = {
+        section: _get_section_source(section) for section in _TASK_ORDER
+    }
     task_states = _compute_task_states(
         event_str_raw=raw_event_str,
         category=target_category,
@@ -433,7 +437,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                 category = st.selectbox(
                     t("sidebar.target_category"),
                     options=TARGET_CATEGORIES,
-                    format_func=lambda x: cat_map.get(x, x),
+                    format_func=lambda x: str(cat_map.get(str(x), x)),
                     key="sb_target_category",
                     on_change=_mark_section_source,
                     args=("target",),
@@ -480,7 +484,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                             st.error(str(e))
                             st.session_state["sb_target_confirmed"] = False
                 else:
-                    target_name = st.text_input(
+                    st.text_input(
                         t("sidebar.target_name"),
                         value=str(st.session_state.get("sb_target_name", "Earth")),
                         key="sb_target_name",
@@ -488,7 +492,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                         args=("target",),
                     )
                     cc1, cc2 = st.columns(2)
-                    target_lon = cc1.number_input(
+                    cc1.number_input(
                         t("sidebar.target_lon"),
                         value=float(st.session_state.get("sb_target_lon", 0.0)),
                         min_value=-180.0,
@@ -499,7 +503,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                         on_change=_mark_section_source,
                         args=("target",),
                     )
-                    target_lat = cc2.number_input(
+                    cc2.number_input(
                         t("sidebar.target_lat"),
                         value=float(st.session_state.get("sb_target_lat", 0.0)),
                         min_value=-90.0,
@@ -510,7 +514,7 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                         on_change=_mark_section_source,
                         args=("target",),
                     )
-                    target_dist = st.number_input(
+                    st.number_input(
                         t("sidebar.target_dist"),
                         value=float(st.session_state.get("sb_target_dist", 1.0)),
                         min_value=0.01,
