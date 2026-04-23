@@ -120,7 +120,9 @@ def test_get_status_led_returns_expected_marker(state: TaskStatus, expected_led:
 def test_compute_task_states_marks_empty_event_as_default() -> None:
     states = _compute_task_states(
         event_str_raw="   ",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -135,7 +137,9 @@ def test_compute_task_states_marks_empty_event_as_default() -> None:
 def test_compute_task_states_marks_example_named_event_as_ready() -> None:
     states = _compute_task_states(
         event_str_raw="Halo CME · 2023-10-28",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -150,7 +154,9 @@ def test_compute_task_states_marks_example_named_event_as_ready() -> None:
 def test_compute_task_states_marks_system_default_target_as_default() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -163,15 +169,21 @@ def test_compute_task_states_marks_system_default_target_as_default() -> None:
 
 
 @pytest.mark.parametrize(
-    ("target_choice", "source"),
-    [("Earth", "example"), ("Parker Solar Probe (example)", "user"), ("Custom", "user")],
+    ("category", "body", "source"),
+    [
+        ("Planet", "Earth", "example"),
+        ("Satellite", "Parker Solar Probe", "user"),
+        ("Custom", "MyTarget", "user"),
+    ],
 )
 def test_compute_task_states_marks_example_or_custom_target_as_ready(
-    target_choice: str, source: TaskSource
+    category: str, body: str, source: TaskSource
 ) -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice=target_choice,
+        category=category,
+        body=body,
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -183,10 +195,29 @@ def test_compute_task_states_marks_example_or_custom_target_as_ready(
     assert states["target"] == "ready"
 
 
+def test_compute_task_states_marks_unconfirmed_target_as_missing() -> None:
+    states = _compute_task_states(
+        event_str_raw="Event",
+        category="Planet",
+        body="Earth",
+        confirmed_status=False,
+        gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
+        obs_df=_complete_obs_frame(),
+        w=420,
+        w_type="slow",
+        ssn=100,
+        sources=_sources(event="user"),
+    )
+
+    assert states["target"] == "missing"
+
+
 def test_compute_task_states_marks_incomplete_gcs_as_missing() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, None, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -201,7 +232,9 @@ def test_compute_task_states_marks_incomplete_gcs_as_missing() -> None:
 def test_compute_task_states_marks_complete_default_gcs_as_default() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -216,7 +249,9 @@ def test_compute_task_states_marks_complete_default_gcs_as_default() -> None:
 def test_compute_task_states_marks_example_complete_gcs_as_ready() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -247,7 +282,9 @@ def test_compute_task_states_marks_ht_status_from_cleaned_observations(
 ) -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_obs_frame(rows),
         w=420,
@@ -262,7 +299,9 @@ def test_compute_task_states_marks_ht_status_from_cleaned_observations(
 def test_compute_task_states_marks_example_ht_data_as_ready() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -277,7 +316,9 @@ def test_compute_task_states_marks_example_ht_data_as_ready() -> None:
 def test_compute_task_states_ignores_invalid_ht_rows_during_cleaning() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_obs_frame(
             [
@@ -327,7 +368,9 @@ def test_normalise_obs_df_resets_to_range_index() -> None:
 def test_compute_task_states_marks_default_drag_values_as_default() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
@@ -342,7 +385,9 @@ def test_compute_task_states_marks_default_drag_values_as_default() -> None:
 def test_compute_task_states_marks_example_default_drag_values_as_ready() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=390,
@@ -363,7 +408,9 @@ def test_compute_task_states_marks_modified_drag_values_as_ready(
 ) -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=w,
@@ -378,7 +425,9 @@ def test_compute_task_states_marks_modified_drag_values_as_ready(
 def test_run_button_disable_rule_matches_missing_only() -> None:
     states = _compute_task_states(
         event_str_raw="Event",
-        target_choice="Earth",
+        category="Planet",
+        body="Earth",
+        confirmed_status=True,
         gcs_values=(1.0, 2.0, 3.0, 4.0, 0.5),
         obs_df=_complete_obs_frame(),
         w=420,
