@@ -127,7 +127,7 @@ DE: dict[str, str] = {
     # ------------------------------------------------------------------ #
     "page.sim.title": "Propagations-Simulator",
     "page.sim.caption": (
-        "Ereignis: **{event}** | Ziel: **{target}** ({dist:.2f} AU) | Modelle: DBM · MoDBM"
+        "Ereignis: **{event}** | Ziel: **{target}** ({dist:.3f} AU) | Modelle: DBM · MoDBM"
     ),
     "page.sim.tab_gcs": "📡 GCS-Geometrie",
     "page.sim.tab_kinematics": "📊 CME-Kinematik",
