@@ -535,8 +535,13 @@ def render_sidebar() -> tuple[SimulationConfig, GCSParams, pd.DataFrame, bool, T
                     c_dist = st.session_state.get("sb_target_dist", 1.0)
                     c_name = st.session_state.get("sb_target_name", "Earth")
                     st.markdown(
-                        f"Target: {c_name}  \n"
-                        f"Lon: {c_lon:.1f}° | Lat: {c_lat:.1f}° | Dist: {c_dist:.3f} AU"
+                        t(
+                            "sidebar.target_caption",
+                            name=c_name,
+                            lon=c_lon,
+                            lat=c_lat,
+                            dist=c_dist,
+                        )
                     )
 
                     target = TargetConfig(

@@ -170,7 +170,7 @@ DE: dict[str, str] = {
     "page.sim.fit_detail.chi_squared": "χ²",
     "page.sim.fit_detail.n_obs": "Beobachtungen",
     "page.sim.fit_detail.height_error": "Höhenfehler",
-    "page.sim.prop_subheader": "Reibungsbasierte Ausbreitung",
+    "page.sim.prop_subheader": "Reibungsbasierte Propagation",
     "page.sim.no_obs_warning": (
         "⚠️ Vor dem Start mindestens 2 Beobachtungen in der Seitenleiste hinzufügen."
     ),
@@ -186,7 +186,7 @@ DE: dict[str, str] = {
     ),
     "page.sim.geom_miss": (
         "**GEOMETRIE: FEHLSCHUSS** — Die Simulation wurde ausgeführt, aber der ICME "
-        "schneidet **{target}** nicht. Kein Ausbreitungsergebnis verfügbar."
+        "schneidet **{target}** nicht. Kein Propagationsergebnis verfügbar."
     ),
     "page.sim.key_results": "Schlüsselergebnisse",
     "page.sim.metric.target_dist": "Zielentfernung",
@@ -305,7 +305,9 @@ DE: dict[str, str] = {
     "sidebar.target_lon": "Lon [deg]",
     "sidebar.target_lat": "Lat [deg]",
     "sidebar.target_dist": "Entfernung [AU]",
-    "sidebar.target_caption": "Lon: **{lon}°** | Lat: **{lat}°** | Entfernung: **{dist} AU**",
+    "sidebar.target_caption": (
+        "**Ziel: {name}**  \nLänge: {lon:.1f}° | Breite: {lat:.1f}° | Distanz: {dist:.3f} AU"
+    ),
     "sidebar.gcs_title": "🐚 GCS-Geometrieparameter",
     "sidebar.section_gcs": "3D-Form",
     "sidebar.gcs_caption": (
@@ -348,7 +350,7 @@ DE: dict[str, str] = {
     "sidebar.gcs_kappa_err_hi": "❌ Seitenverhältnis 𝜿 muss < 1 sein. Begrenzt auf 0.99.",
     "sidebar.gcs_kappa_err_lo": "❌ Seitenverhältnis 𝜿 muss > 0 sein. Begrenzt auf 0.01.",
     "sidebar.obs_title": "📋 Beobachtungstabelle (H-T-Daten)",
-    "sidebar.section_ht": "Hoehe-Zeit",
+    "sidebar.section_ht": "Höhen-Zeit-Profil",
     "sidebar.obs_caption": "CME-Apex-Höhen aus Koronagraphen-Bildern.",
     "sidebar.obs_time_col": "Zeit (UTC)",
     "sidebar.obs_time_help": (
@@ -369,7 +371,7 @@ DE: dict[str, str] = {
         "ℹ️ Höhenfehler = 0 R☉: Alle Beobachtungen als exakt behandelt (ungewichteter Fit)."
     ),
     "sidebar.drag_title": "🪂 Drag-Modell-Parameter",
-    "sidebar.section_drag": "Ausbreitung",
+    "sidebar.section_drag": "Propagation",
     "sidebar.dbm_only": "**Nur DBM**",
     "sidebar.wind_speed": "Sonnenwindgeschwindigkeit w [km/s]",
     "sidebar.wind_speed_help": "Konstante Sonnenwindgeschwindigkeit im Standard-DBM.",
@@ -434,7 +436,7 @@ DE: dict[str, str] = {
     "plot.prop.velocity": "Geschwindigkeit [km/s] ({label})",
     "plot.prop.target_ref": "Ziel ({dist:.2f} AU)",
     "plot.prop.arrival_annotation": "Ankunft {elapsed:.1f} h",
-    "plot.prop.xaxis": "Ausbreitungszeit [h]",
+    "plot.prop.xaxis": "Propagationszeit [h]",
     "plot.prop.dist_yaxis": "Sonnenabstand [R<sub>☉</sub>]",
     "plot.prop.vel_yaxis": "Radialgeschwindigkeit [km/s]",
     "plot.prop.dist_vs_time": "Abstand vs. Zeit",

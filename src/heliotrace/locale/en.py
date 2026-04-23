@@ -290,7 +290,9 @@ EN: dict[str, str] = {
     "sidebar.target_lon": "Lon [deg]",
     "sidebar.target_lat": "Lat [deg]",
     "sidebar.target_dist": "Distance [AU]",
-    "sidebar.target_caption": "Lon: **{lon}°** | Lat: **{lat}°** | Distance: **{dist} AU**",
+    "sidebar.target_caption": (
+        "**Target: {name}**  \nLon: {lon:.1f}° | Lat: {lat:.1f}° | Distance: {dist:.3f} AU"
+    ),
     "sidebar.gcs_title": "🐚 GCS Geometrical Parameters",
     "sidebar.section_gcs": "3D Shape",
     "sidebar.gcs_caption": "3D shape parameters derived by applying the GCS model to coronagraph observations.",
@@ -331,7 +333,7 @@ EN: dict[str, str] = {
     "sidebar.gcs_kappa_err_hi": "❌ Aspect ratio 𝜿 must be < 1. Clamped to 0.99.",
     "sidebar.gcs_kappa_err_lo": "❌ Aspect ratio 𝜿 must be > 0. Clamped to 0.01.",
     "sidebar.obs_title": "📋 Observation Table (H-T Data)",
-    "sidebar.section_ht": "Height-Time",
+    "sidebar.section_ht": "Height-Time-Profile",
     "sidebar.obs_caption": "CME apex heights from coronagraph images.",
     "sidebar.obs_time_col": "Time (UTC)",
     "sidebar.obs_time_help": (
