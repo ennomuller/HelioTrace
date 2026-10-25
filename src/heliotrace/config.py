@@ -17,14 +17,16 @@ KEY_SIM_CONFIG: str = "simulation_config"
 # ---------------------------------------------------------------------------
 # Target Catalogs
 # ---------------------------------------------------------------------------
-PLANET_TARGETS = [
-    "Mercury", "Venus", "Earth", "Mars", 
-    "Jupiter", "Saturn", "Uranus", "Neptune"
-]
+PLANET_TARGETS = ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
 
 SATELLITE_TARGETS = [
-    "STEREO-A", "STEREO-B", "Parker Solar Probe", 
-    "Solar Orbiter", "SOHO", "ACE", "BepiColombo"
+    "STEREO-A",
+    "STEREO-B",
+    "Parker Solar Probe",
+    "Solar Orbiter",
+    "SOHO",
+    "ACE",
+    "BepiColombo",
 ]
 
 TARGET_CATEGORIES = ["Planet", "Spacecraft", "Custom"]

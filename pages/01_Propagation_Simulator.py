@@ -8,7 +8,6 @@ Tab 3: Propagation Results       (triggered by "Run Simulation" button)
 
 from __future__ import annotations
 
-import contextlib
 from datetime import datetime
 
 import astropy.units as u
